@@ -112,32 +112,40 @@ export class Scene {
   }
 
   load(name: string, src: string, onProgress?: (p: number) => void): Promise<void> {
-    return new Promise((resolve, reject) => {
+    // Try XHR first (gives a real progress counter). If it fails, stalls or is blocked
+    // (some hosts and sandboxes do that), fall back to a plain <img> load.
+    const viaXhr = () => new Promise<string>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open('GET', src);
       xhr.responseType = 'blob';
+      xhr.timeout = 10000;
       xhr.onprogress = (e) => e.lengthComputable && onProgress?.(e.loaded / e.total);
-      xhr.onerror = () => reject(new Error('image'));
-      xhr.onload = () => {
-        const img = new Image();
-        img.onload = () => {
-          const gl = this.gl;
-          const tex = gl.createTexture()!;
-          gl.bindTexture(gl.TEXTURE_2D, tex);
-          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-          this.textures[name] = { tex, w: img.naturalWidth, h: img.naturalHeight };
-          URL.revokeObjectURL(img.src);
-          resolve();
-        };
-        img.onerror = () => reject(new Error('decode'));
-        img.src = URL.createObjectURL(xhr.response);
-      };
+      xhr.onerror = xhr.ontimeout = xhr.onabort = () => reject(new Error('xhr'));
+      xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 && xhr.response ? resolve(URL.createObjectURL(xhr.response)) : reject(new Error('status')));
       xhr.send();
     });
+    const decode = (url: string, cors: boolean) => new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      if (cors) img.crossOrigin = 'anonymous';
+      const t = setTimeout(() => reject(new Error('timeout')), 15000);
+      img.onload = () => { clearTimeout(t); resolve(img); };
+      img.onerror = () => { clearTimeout(t); reject(new Error('decode')); };
+      img.src = url;
+    });
+    const upload = (img: HTMLImageElement) => {
+      const gl = this.gl;
+      const tex = gl.createTexture()!;
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      this.textures[name] = { tex, w: img.naturalWidth, h: img.naturalHeight };
+    };
+    return viaXhr()
+      .then(async (url) => { try { upload(await decode(url, false)); } finally { URL.revokeObjectURL(url); } })
+      .catch(async () => { upload(await decode(src, true)); onProgress?.(1); });
   }
 
   use(name: string) {

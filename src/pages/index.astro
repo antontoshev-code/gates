@@ -85,6 +85,10 @@ const tech = stops.filter((s) => s.data.world === 'technology');
       <a class="menu-gate" href="#gate" data-go="gate">Back to the gates</a>
     </div>
   </div>
+  <script>
+    import { initExperience } from '../scripts/experience';
+    initExperience();
+  </script>
 </Base>
 
 <style is:global>
@@ -219,8 +223,3 @@ const tech = stops.filter((s) => s.data.world === 'technology');
 
   @media (prefers-reduced-motion: reduce) { .pill, .ring::after { animation: none; } }
 </style>
-
-<script>
-  import { initExperience } from '../scripts/experience';
-  initExperience();
-</script>

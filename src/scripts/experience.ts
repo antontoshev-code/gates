@@ -319,7 +319,9 @@ export function initExperience() {
   const first = gateTex();
   const counter = { n: 0 };
   const showN = () => { loadN.textContent = `${Math.round(counter.n)}%`; };
-  scene.load(first, SRC[first], (p) => gsap.to(counter, { n: p * 90, duration: 0.3, onUpdate: showN }))
+  // never leave people staring at a counter: after 20s, show the calm version instead
+  const giveUp = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('slow')), 20000));
+  Promise.race([scene.load(first, SRC[first], (p) => gsap.to(counter, { n: p * 90, duration: 0.3, onUpdate: showN })), giveUp])
     .then(async () => {
       root.classList.add('webgl');
       scene.use(first);
