@@ -1,0 +1,118 @@
+---
+import Base from '../layouts/Base.astro';
+import Hud from '../components/Hud.astro';
+import Gate from '../components/Gate.astro';
+import Marquee from '../components/Marquee.astro';
+import Paths from '../components/Paths.astro';
+import Started from '../components/Started.astro';
+import NoteDraw from '../components/NoteDraw.astro';
+import Process from '../components/Process.astro';
+import BriefForm from '../components/BriefForm.astro';
+import Honest from '../components/Honest.astro';
+import Contact from '../components/Contact.astro';
+---
+<Base>
+  <Hud />
+  <a class="sr-only" href="#technology">Skip to websites and automations</a>
+
+  <main class="stage">
+    <!-- ← PEOPLE -->
+    <section class="world" id="people" data-world="people" aria-label="People">
+      <div class="scene pad hero-scene" data-scene="People">
+        <div class="wrap intro">
+          <div>
+            <div class="label w px">← People</div>
+            <h2 class="big split">Let's see what's possible.</h2>
+          </div>
+          <p class="reveal">No packages to squeeze into. Pick the way in that fits you right now and we'll figure out the rest together.</p>
+        </div>
+        <div class="wrap"><Paths world="people" /></div>
+      </div>
+      <div class="scene pad" data-scene="Things I've started">
+        <div class="wrap">
+          <div class="label w px">Side quests</div>
+          <h2 class="big split" style="margin-bottom:40px">Things I've started.</h2>
+          <Started />
+        </div>
+      </div>
+      <div class="scene pad" data-scene="Honest bit">
+        <div class="wrap">
+          <div class="label m px">The honest bit</div>
+          <h2 class="big split" style="margin-bottom:40px">Not a guru.</h2>
+          <Honest />
+        </div>
+      </div>
+      <div class="scene pad" data-scene="Contact">
+        <div class="wrap"><Contact show="people" id="contact-people" /></div>
+      </div>
+      <p class="next pad"><a href="#gate" data-world-link="gate">Back to the gate →</a></p>
+    </section>
+
+    <!-- GATE -->
+    <section class="world" id="gate" data-world="gate" aria-label="Gate">
+      <div class="scene gate-scene" data-scene="Gate">
+        <Gate />
+        <Marquee />
+      </div>
+      <div class="scene pad alt" data-scene="Note to self">
+        <div class="wrap"><NoteDraw /></div>
+      </div>
+      <div class="scene pad" data-scene="Honest bit">
+        <div class="wrap">
+          <div class="label m px">The honest bit</div>
+          <h2 class="big split" style="margin-bottom:40px">Not a guru. Not an agency.</h2>
+          <Honest />
+        </div>
+      </div>
+      <div class="scene pad" data-scene="Say hi">
+        <div class="wrap"><Contact id="contact" /></div>
+      </div>
+      <footer class="pad"><div class="wrap foot"><span>© Anthony Toshev · Sofia, Bulgaria</span><span class="mono">People &amp; Technology</span></div></footer>
+    </section>
+
+    <!-- TECHNOLOGY → -->
+    <section class="world" id="technology" data-world="technology" aria-label="Technology">
+      <div class="scene pad hero-scene" data-scene="Technology">
+        <div class="wrap intro">
+          <div>
+            <div class="label c px">Technology →</div>
+            <h2 class="big split">Built to work. Not to impress.</h2>
+          </div>
+          <p class="reveal">One person, no agency overhead. I listen first, then build something you can actually run yourself.</p>
+        </div>
+        <div class="wrap"><Paths world="technology" /></div>
+      </div>
+      <div class="scene pad" data-scene="How it goes">
+        <div class="wrap">
+          <div class="label c px">How a project goes</div>
+          <h2 class="big split" style="margin-bottom:40px">Four steps. No surprises.</h2>
+          <Process />
+        </div>
+      </div>
+      <div class="scene pad" data-scene="Brief">
+        <div class="wrap"><BriefForm /></div>
+      </div>
+      <p class="next pad"><a href="#gate" data-world-link="gate">← Back to the gate</a></p>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .stage { position: relative; }
+  .world { position: relative; background: var(--bg); }
+  .hero-scene { padding-top: clamp(140px, 16vw, 200px); }
+  .gate-scene { padding-block: 0 clamp(56px, 8vw, 100px); }
+  .alt { background: var(--bg-2); }
+  .intro { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 40px; align-items: end; margin-bottom: 48px; }
+  .intro p { color: var(--fg-2); max-width: 46ch; font-size: clamp(17px, 1.5vw, 20px); }
+  .next { text-align: center; padding-block: 24px 96px; font-weight: 600; }
+  .foot { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-block: 28px 96px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+  @media (max-width: 980px) { .intro { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { initExperience } from '../scripts/experience';
+  import { initGateFx } from '../scripts/gateFx';
+  initExperience();
+  initGateFx();
+</script>

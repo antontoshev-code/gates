@@ -1,0 +1,93 @@
+---
+/** Project brief for the Technology side. Posts to Web3Forms when PUBLIC_WEB3FORMS_KEY is set; otherwise says it isn't connected yet. */
+const key = import.meta.env.PUBLIC_WEB3FORMS_KEY ?? '';
+const needs = ['New website', 'Redesign', 'Automation / AI', 'Not sure yet'];
+---
+<div class="brief" id="brief">
+  <div class="left">
+    <div class="label c px" style="margin:0">Project brief</div>
+    <h3 class="split">Tell me what you need.</h3>
+    <p>Two minutes. You get a first price range without a sales call.</p>
+    {!key && <p class="note">Preview: this form isn't connected yet.</p>}
+  </div>
+  <form class="brief-form" data-key={key} novalidate>
+    <input type="hidden" name="subject" value="New project brief from antontoshev.com" />
+    <input type="checkbox" name="botcheck" class="sr-only" tabindex="-1" autocomplete="off" />
+    <fieldset class="field">
+      <legend>What do you need?</legend>
+      <div class="opts">
+        {needs.map((n, i) => (<><input type="checkbox" name="needs" value={n} id={`need-${i}`} checked={i === 0} /><label for={`need-${i}`}>{n}</label></>))}
+      </div>
+    </fieldset>
+    <div class="field">
+      <label for="budget">Budget <output id="budget-out" for="budget">€1,500</output></label>
+      <input type="range" id="budget" name="budget" min="500" max="8000" step="250" value="1500" />
+    </div>
+    <div class="field">
+      <label for="weeks">When do you need it? <output id="weeks-out" for="weeks">in 6 weeks</output></label>
+      <input type="range" id="weeks" name="weeks" min="1" max="16" step="1" value="6" />
+    </div>
+    <div class="two">
+      <div class="field"><label for="name">Your name</label><input type="text" id="name" name="name" autocomplete="name" required /></div>
+      <div class="field"><label for="email">Email</label><input type="email" id="email" name="email" autocomplete="email" required /></div>
+    </div>
+    <div class="field"><label for="refs">Sites you like (references)</label><input type="text" id="refs" name="references" placeholder="paste a few links" /></div>
+    <div class="field"><label for="about">About your project</label><textarea id="about" name="message" placeholder="What you do, who it's for, what you want people to do on the site"></textarea></div>
+    <button class="btn cool" type="submit">Send brief</button>
+    <p class="status" role="status" hidden></p>
+  </form>
+</div>
+<style>
+  .brief { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 48px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 26px; padding: clamp(22px, 4vw, 52px); }
+  .left { display: grid; gap: 16px; align-content: start; }
+  h3 { font-size: clamp(34px, 4vw, 60px); font-weight: 800; letter-spacing: -0.035em; text-transform: uppercase; }
+  .left p { color: #b9b8c0; }
+  .note, .status { color: var(--ph-fg) !important; font-size: 14px; }
+  form { display: grid; gap: 18px; min-width: 0; }
+  .field { display: grid; gap: 8px; border: 0; padding: 0; margin: 0; min-width: 0; }
+  .field > label, legend { font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; padding: 0; margin-bottom: 8px; }
+  output { color: var(--cool); font-family: var(--font-mono); }
+  input[type='range'] { width: 100%; accent-color: var(--cool); }
+  input[type='text'], input[type='email'], textarea { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; color: var(--fg); font: 400 15px var(--font-body); }
+  textarea { min-height: 96px; resize: vertical; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .opts { display: flex; gap: 6px; flex-wrap: wrap; }
+  .opts input { position: absolute; opacity: 0; pointer-events: none; }
+  .opts label { border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 14px; cursor: pointer; }
+  .opts input:checked + label { background: var(--cool); border-color: var(--cool); color: var(--bg); }
+  .opts input:focus-visible + label { outline: 2px solid var(--fg); outline-offset: 2px; }
+  @media (max-width: 980px) { .brief { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) { .two { grid-template-columns: 1fr; } }
+</style>
+<script>
+  document.querySelectorAll<HTMLFormElement>('.brief-form').forEach((form) => {
+    const b = form.querySelector<HTMLInputElement>('#budget')!, bo = form.querySelector('#budget-out')!;
+    const w = form.querySelector<HTMLInputElement>('#weeks')!, wo = form.querySelector('#weeks-out')!;
+    const status = form.querySelector<HTMLElement>('.status')!;
+    const upd = () => {
+      bo.textContent = '€' + Number(b.value).toLocaleString('en-US') + (b.value === b.max ? '+' : '');
+      wo.textContent = w.value === '1' ? 'this week' : `in ${w.value} weeks`;
+    };
+    b.addEventListener('input', upd); w.addEventListener('input', upd); upd();
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      status.hidden = false;
+      const key = form.dataset.key;
+      if (!key) { status.textContent = "Not connected yet. When it's live, this sends your brief to Anthony."; return; }
+      if (!form.reportValidity()) { status.hidden = true; return; }
+      status.textContent = 'Sending…';
+      const data = new FormData(form);
+      data.set('access_key', key);
+      data.set('budget', bo.textContent || '');
+      data.set('weeks', wo.textContent || '');
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', { method: 'POST', body: data });
+        const json = await res.json();
+        status.textContent = json.success ? "Sent. I'll get back to you within a couple of days." : "That didn't go through. Try again, or email me directly.";
+        if (json.success) form.reset(), upd();
+      } catch {
+        status.textContent = "That didn't go through. Check your connection and try again.";
+      }
+    });
+  });
+</script>

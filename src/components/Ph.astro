@@ -1,0 +1,6 @@
+---
+import { phSegments } from '../lib/ph';
+interface Props { text: string }
+const { text } = Astro.props;
+---
+{phSegments(text).map((s) => (s.ph ? <span class="ph">{s.text}</span> : s.text))}

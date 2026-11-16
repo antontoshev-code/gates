@@ -1,0 +1,30 @@
+/* Design tokens. One dark, cinematic world: warm light = People, cool pixels = Technology. */
+:root {
+  --bg: #07080c;
+  --bg-2: #0e1017;
+  --fg: #eeece7;
+  --fg-2: #c9c8cf;
+  --muted: #8b8d9a;
+  --line: #22242f;
+
+  --warm: #ff6a3d;
+  --warm-soft: #ffb199;
+  --cool: #7182ff;
+  --cool-soft: #b7c0ff;
+
+  --ph-bg: #2e2a12;
+  --ph-fg: #f2dc7c;
+
+  --font-display: 'Syne', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-pixel: 'Silkscreen', ui-monospace, monospace;
+
+  --gutter: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  --max: 1320px;
+  --radius: 22px;
+  --ease: cubic-bezier(0.7, 0, 0.2, 1);
+
+  color-scheme: dark;
+}

@@ -1,0 +1,11 @@
+---
+const words = ['Honest', 'Playful', 'Practical', 'Bold', 'Empathic', 'A bit irreverent', 'Human', 'Shipped'];
+---
+<div class="marquee" aria-hidden="true"><div class="track">{[...words, ...words].map((w) => <span>{w}</span>)}</div></div>
+<style>
+  .marquee { overflow: hidden; border-block: 1px solid var(--line); padding-block: 18px; margin-top: 48px; }
+  .track { display: flex; gap: 48px; width: max-content; animation: mq 38s linear infinite; font-family: var(--font-display); font-weight: 700;
+    font-size: clamp(26px, 3.6vw, 46px); text-transform: uppercase; letter-spacing: -0.02em; }
+  .track span:nth-child(odd) { color: transparent; -webkit-text-stroke: 1px var(--muted); }
+  @keyframes mq { to { transform: translateX(-50%); } }
+</style>
