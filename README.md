@@ -29,6 +29,8 @@ Anthony Toshev's personal site. You stand on a stone path in front of two gates:
 
 Anything in `[square brackets]` renders as a yellow placeholder until you replace it.
 
+**Improvised copy (replace before launch):** the `more:` line of every stop except t4 and t5, the `line:` of every project, and the last step in `src/components/Process.astro`. These are believable stand-ins, not facts: check formats, prices, group sizes and project descriptions.
+
 The pictures are the first mockups. Final art should be at least 3840px wide and, ideally, one extra close-up picture per world so the zoomed-in views stay sharp.
 
 ## Run it

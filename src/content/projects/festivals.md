@@ -2,5 +2,5 @@
 title: Local festivals
 verb: Organised
 order: 4
-line: "[PLACEHOLDER: names, years]"
+line: "small local festivals, from first idea to the last folded chair."
 ---

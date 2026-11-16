@@ -7,7 +7,7 @@ y: 0.355
 kicker: "For you, while I’m in training."
 title: 1:1 coaching
 summary: For when you're stuck in your own loops and want someone honest to think with. I'm training toward becoming an Inuka coach, so I'll always tell you exactly where I am.
-more: "Full attention, curiosity, no script. [PLACEHOLDER: format + price, e.g. pay-what-feels-fair while in training]"
+more: "Full attention, curiosity, no script. Sessions are online or in Sofia, about an hour, and pay-what-feels-fair while I’m in training."
 cta: Book a free 20-min call
 ctaHref: "#stop-p5-table"
 ---

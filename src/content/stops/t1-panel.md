@@ -7,7 +7,7 @@ y: 0.48
 kicker: "In Bulgarian, taking projects now."
 title: WordPress sites
 summary: For small businesses and freelancers in Bulgaria. Fast, findable on Google, and easy to update without calling a developer every time a price changes.
-more: "[PLACEHOLDER: 2–3 sites you've built, with links]"
+more: "A few recent sites will live here soon. Until then, ask and I’ll send you links."
 cta: Start a brief
 ctaHref: "#stop-t5-crystal"
 ---
