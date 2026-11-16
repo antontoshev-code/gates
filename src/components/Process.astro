@@ -1,10 +1,10 @@
 ---
 import Ph from './Ph.astro';
 const steps = [
-  { k: '01 / listen', t: 'We talk', d: "What you do, who it's for, and what the site has to get people to do." },
-  { k: '02 / plan', t: 'I plan', d: 'Pages, words and structure first. Design comes after we agree on the message.' },
-  { k: '03 / build', t: 'I build', d: 'You see it while it grows and can change your mind.' },
-  { k: '04 / launch', t: 'We launch', d: 'You learn to update it yourself. [support terms]' },
+  { k: '1. Listen', t: 'We talk', d: "What you do, who it's for, and what the site has to get people to do." },
+  { k: '2. Plan', t: 'I plan', d: 'Pages, words and structure first. Design comes after we agree on the message.' },
+  { k: '3. Build', t: 'I build', d: 'You see it while it grows and can change your mind.' },
+  { k: '4. Launch', t: 'We launch', d: 'You learn to update it yourself. [support terms]' },
 ];
 ---
 <ol class="steps">
@@ -13,7 +13,7 @@ const steps = [
 <style>
   .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-top: 1px solid var(--glass-line); }
   li { display: grid; grid-template-columns: 92px 1fr; gap: 2px 14px; padding: 12px 0; border-bottom: 1px solid var(--glass-line); }
-  b { grid-row: span 2; font-family: var(--font-mono); font-weight: 500; color: var(--cool-soft); font-size: 12px; padding-top: 4px; }
+  b { grid-row: span 2; font-weight: 500; color: var(--cool-soft); font-size: 13px; padding-top: 4px; font-variant-numeric: tabular-nums; }
   .t { font-family: var(--font-display); font-weight: 700; font-size: 19px; }
   .d { color: var(--muted); font-size: 14px; }
 </style>

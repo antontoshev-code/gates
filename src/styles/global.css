@@ -8,8 +8,8 @@ body {
   color: var(--fg);
   font: 400 17px/1.6 var(--font-body);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
 }
+html, body { overflow-x: clip; }
 img { max-width: 100%; display: block; }
 a { color: inherit; }
 :focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
@@ -19,8 +19,8 @@ p { margin: 0; }
 
 .pad { padding-left: var(--gutter); padding-right: var(--gutter-r); }
 .wrap { max-width: var(--max); margin: 0 auto; }
-.px { font-family: var(--font-pixel); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
-.mono { font-family: var(--font-mono); font-size: 13px; }
+.px { font-family: var(--font-pixel); font-size: 12px; }
+::selection { background: var(--warm); color: var(--bg); }
 .ph { background: var(--ph-bg); color: var(--ph-fg); padding: 0.05em 0.35em; border-radius: 3px; font-size: 0.88em; }
 .w { color: var(--warm); } .c { color: var(--cool); } .m { color: var(--muted); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -38,7 +38,9 @@ body::after {
   text-decoration: none; display: inline-flex; gap: 8px; align-items: center; justify-self: start;
   transition: transform 0.3s var(--ease);
 }
+
 .btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(0) scale(0.97); }
 .btn.warm { background: var(--warm); border-color: var(--warm); color: var(--bg); }
 .btn.cool { background: var(--cool); border-color: var(--cool); color: var(--bg); }
 .label { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }

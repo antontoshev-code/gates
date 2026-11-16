@@ -12,30 +12,27 @@ const d = stop.data;
 const projects = d.panel === 'contact' ? (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order) : [];
 const tone = d.world === 'people' ? 'w' : 'c';
 ---
-<article class={`panel ${d.world}`} id={`stop-${stop.id}`} data-stop={stop.id} data-world={d.world} data-x={d.x} data-y={d.y} aria-labelledby={`t-${stop.id}`}>
+<article class={`panel ${d.world}`} id={`stop-${stop.id}`} data-stop={stop.id} data-world={d.world} data-x={d.x} data-y={d.y} data-place={d.place} aria-labelledby={`t-${stop.id}`}>
   <div class="panel-in">
-    <header>
-      <span class={`px ${tone}`}>{String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')} · {d.place}</span>
-      <span class="px m">{d.kicker}</span>
-    </header>
     <h2 id={`t-${stop.id}`} class="ptitle">{d.title}</h2>
+    <p class="meta"><span class={tone}>{d.place}</span>, {index + 1} of {total}. {d.kicker}</p>
     <p class="sum">{d.summary}</p>
     {d.panel === 'note' && <NoteDraw />}
     {d.panel === 'process' && <Process />}
     {d.panel === 'contact' && (
       <ul class="started">
-        {projects.map((p) => (<li><span class="px w">{p.data.verb}</span> <b>{p.data.title}</b> <Ph text={p.data.line} /></li>))}
+        {projects.map((p) => (<li><b>{p.data.title}</b> <span class="m">({p.data.verb.toLowerCase()})</span> <Ph text={p.data.line} /></li>))}
       </ul>
     )}
     {d.more && <p class="more"><Ph text={d.more} /></p>}
-    {d.panel === 'brief' ? <BriefForm /> : <a class={`btn ${d.world === 'people' ? 'warm' : 'cool'}`} href={d.ctaHref}>{d.cta} →</a>}
+    {d.panel === 'brief' ? <BriefForm /> : <a class={`btn ${d.world === 'people' ? 'warm' : 'cool'}`} href={d.ctaHref}>{d.cta}</a>}
   </div>
 </article>
 
 <style>
   .panel { color: var(--fg); }
   .panel-in { display: grid; gap: 16px; }
-  header { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .meta { font-size: 13.5px; color: var(--muted); margin-top: -6px; }
   .ptitle { font-size: clamp(30px, 3.4vw, 46px); font-weight: 800; letter-spacing: -0.035em; line-height: 0.98; }
   .sum { color: var(--fg-2); font-size: 16px; line-height: 1.6; }
   .more { color: var(--muted); font-size: 14.5px; }

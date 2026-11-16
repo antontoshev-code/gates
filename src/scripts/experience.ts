@@ -43,7 +43,7 @@ export function initExperience() {
     world: panel.dataset.world as World,
     x: Number(panel.dataset.x),
     y: Number(panel.dataset.y),
-    place: panel.querySelector('header .px')?.textContent?.split('·').pop()?.trim() ?? '',
+    place: panel.dataset.place ?? '',
     panel,
     hot: document.querySelector<HTMLElement>(`.hot[data-stop="${panel.dataset.stop}"]`)!,
   }));

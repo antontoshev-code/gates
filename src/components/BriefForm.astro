@@ -4,7 +4,7 @@ const key = import.meta.env.PUBLIC_WEB3FORMS_KEY ?? '';
 const needs = ['New website', 'Redesign', 'Automation / AI', 'Not sure yet'];
 ---
 <div class="brief" id="brief">
-  {!key && <p class="note">Preview: this form isn't connected yet.</p>}
+  {!key && <p class="note">Preview: this form isn’t connected yet.</p>}
   <form class="brief-form" data-key={key} novalidate>
     <input type="hidden" name="subject" value="New project brief from antontoshev.com" />
     <input type="checkbox" name="botcheck" class="sr-only" tabindex="-1" autocomplete="off" />
@@ -38,14 +38,16 @@ const needs = ['New website', 'Redesign', 'Automation / AI', 'Not sure yet'];
   form { display: grid; gap: 18px; min-width: 0; }
   .field { display: grid; gap: 8px; border: 0; padding: 0; margin: 0; min-width: 0; }
   .field > label, legend { font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; padding: 0; margin-bottom: 8px; }
-  output { color: var(--cool); font-family: var(--font-mono); }
+  output { color: var(--cool-soft); font-variant-numeric: tabular-nums; }
   input[type='range'] { width: 100%; accent-color: var(--cool); }
-  input[type='text'], input[type='email'], textarea { width: 100%; background: rgba(7, 8, 12, 0.55); border: 1px solid var(--glass-line); border-radius: 12px; padding: 12px 14px; color: var(--fg); font: 400 15px var(--font-body); }
+  input[type='text'], input[type='email'], textarea { width: 100%; background: var(--field); border: 1px solid var(--glass-line); border-radius: 12px; padding: 12px 14px; color: var(--fg); font: 400 15px var(--font-body); }
   textarea { min-height: 96px; resize: vertical; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .opts { display: flex; gap: 6px; flex-wrap: wrap; }
   .opts input { position: absolute; opacity: 0; pointer-events: none; }
   .opts label { border: 1px solid var(--glass-line); border-radius: 999px; padding: 6px 12px; font-size: 14px; cursor: pointer; }
+  .opts label:active { transform: scale(0.97); }
+  button:disabled { background: var(--light-12); border-color: var(--light-12); color: var(--muted); cursor: not-allowed; }
   .opts input:checked + label { background: var(--cool); border-color: var(--cool); color: var(--bg); }
   .opts input:focus-visible + label { outline: 2px solid var(--fg); outline-offset: 2px; }
   @media (max-width: 560px) { .two { grid-template-columns: 1fr; } }

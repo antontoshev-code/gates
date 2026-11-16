@@ -4,16 +4,17 @@ const notes = await getCollection('notes');
 const first = notes[0];
 ---
 <div class="slip" aria-live="polite" data-notes={JSON.stringify(notes.map((n) => ({ id: n.id, text: n.data.text })))}>
-  <span class="px">Note to self · #<span class="slip-n">{first?.id}</span></span>
+  <span class="meta">Note to self, number <span class="slip-n">{first?.id}</span></span>
   <blockquote class="slip-q">{first?.data.text}</blockquote>
-  <div class="foot"><span class="mono">write it down. or don't.</span><button class="slip-btn" type="button">Draw another ↻</button></div>
+  <div class="foot"><span class="meta">Write it down. Or don’t.</span><button class="slip-btn" type="button">Draw another ↻</button></div>
 </div>
 <style>
-  .slip { position: relative; background: #f3efe6; color: #15141a; border-radius: 6px; padding: 22px; display: grid; gap: 12px; transform: rotate(-1.5deg); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); }
-  .slip .px, .slip .mono { color: #6a6b78; }
+  .slip { position: relative; background: var(--paper); color: var(--ink); border-radius: 6px; padding: 24px; display: grid; gap: 12px; transform: rotate(-1.5deg); box-shadow: 0 20px 50px var(--shadow); }
+  .slip .meta { color: var(--ink-muted); font-size: 13px; }
   blockquote { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 24px; line-height: 1.1; letter-spacing: -0.02em; }
   .foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .slip-btn { font: 600 13px var(--font-body); background: #15141a; color: #f3efe6; border: 0; border-radius: 999px; padding: 8px 12px; cursor: pointer; }
+  .slip-btn:active { transform: scale(0.96); }
+  .slip-btn { transition: transform 0.15s; font: 600 13px var(--font-body); background: var(--ink); color: var(--paper); border: 0; border-radius: 999px; padding: 8px 12px; cursor: pointer; }
 </style>
 <script>
   document.querySelectorAll<HTMLElement>('.slip').forEach((slip) => {
