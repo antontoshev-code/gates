@@ -19,19 +19,22 @@ const umamiId = import.meta.env.PUBLIC_UMAMI_ID;
 const umamiSrc = import.meta.env.PUBLIC_UMAMI_SRC || 'https://cloud.umami.is/script.js';
 ---
 <!doctype html>
-<html lang="en">
+<html lang="en" class="no-js">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="theme-color" content="#07080c" />
+    <script is:inline>document.documentElement.classList.replace("no-js","js")</script>
+    <link rel="preload" as="image" href="scenes/gate-wide.jpg" media="(min-aspect-ratio: 9/10)" />
+    <link rel="preload" as="image" href="scenes/gate-tall.jpg" media="(max-aspect-ratio: 9/10)" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     {umamiId && <script defer src={umamiSrc} data-website-id={umamiId}></script>}
   </head>
-  <body data-world="gate">
+  <body data-mode="gate">
     <slot />
   </body>
 </html>

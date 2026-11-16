@@ -2,8 +2,6 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
-html.lenis, html.lenis body { height: auto; }
-.lenis.lenis-smooth { scroll-behavior: auto !important; }
 body {
   margin: 0;
   background: var(--bg);
@@ -12,7 +10,6 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
-body.is-switching { overflow: hidden; }
 img { max-width: 100%; display: block; }
 a { color: inherit; }
 :focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
@@ -50,19 +47,8 @@ body::after {
 .scene { padding-block: clamp(72px, 10vw, 140px); position: relative; overflow-x: clip; }
 .scene + .scene { border-top: 1px solid var(--line); }
 
-/* SplitType line masks */
-.split .line { overflow: hidden; padding-bottom: 0.06em; margin-bottom: -0.06em; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 
-/* big world name that flashes across during a world switch */
-.world-flash {
-  position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; pointer-events: none; opacity: 0; overflow: hidden; white-space: nowrap;
-  font-family: var(--font-display); font-weight: 800; text-transform: uppercase; letter-spacing: -0.05em;
-  font-size: clamp(64px, 16vw, 260px); color: transparent; -webkit-text-stroke: 2px var(--fg);
-}
-.world-flash[data-world='people'] { -webkit-text-stroke-color: var(--warm); }
-.world-flash[data-world='technology'] { -webkit-text-stroke-color: var(--cool); }
-.world { outline: none; }

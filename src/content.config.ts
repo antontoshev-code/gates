@@ -2,19 +2,22 @@ import { defineCollection } from 'astro:content';
 import { glob, file } from 'astro/loaders';
 import { z } from 'astro/zod';
 
-/** Offers shown in the People and Technology worlds. One Markdown file each; body = the "more" text. */
-const offers = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/offers' }),
+/** Explorable spots inside each world. x/y are positions in the wide scene image (0–1). */
+const stops = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/stops' }),
   schema: z.object({
     world: z.enum(['people', 'technology']),
     order: z.number(),
+    place: z.string(),
+    x: z.number().min(0).max(1),
+    y: z.number().min(0).max(1),
     kicker: z.string(),
-    status: z.string(),
     title: z.string(),
     summary: z.string(),
+    more: z.string().optional(),
     cta: z.string(),
     ctaHref: z.string(),
-    draft: z.boolean().default(false),
+    panel: z.enum(['note', 'contact', 'process', 'brief']).optional(),
   }),
 });
 
@@ -35,4 +38,4 @@ const notes = defineCollection({
   schema: z.object({ text: z.string() }),
 });
 
-export const collections = { offers, projects, notes };
+export const collections = { stops, projects, notes };
