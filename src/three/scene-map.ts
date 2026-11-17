@@ -11,11 +11,12 @@ export class SceneMap {
   /** Arc-length position (0..1) of each stop on its world's path. */
   stopT = new Map<string, number>();
 
-  constructor(roots: Object3D[], private stops: StopData[]) {
-    for (const root of roots) {
-      root.updateMatrixWorld(true);
-      root.traverse((o) => { if (o.name) this.byName.set(o.name, o); });
-    }
+  constructor(private stops: StopData[]) {}
+
+  /** Add a loaded GLB root (threshold, human or tech). */
+  add(root: Object3D) {
+    root.updateMatrixWorld(true);
+    root.traverse((o) => { if (o.name) this.byName.set(o.name, o); });
   }
 
   get(name: string): Object3D {
@@ -26,36 +27,33 @@ export class SceneMap {
   pos(name: string): Vector3 { return this.get(name).getWorldPosition(new Vector3()); }
 
   /** Same contract as scripts/validate-scene.mjs, checked again at runtime so a stale export can't half-load. */
-  validate(): string[] {
-    const missing: string[] = [];
-    const need = (n: string) => { if (!this.byName.has(n)) missing.push(n); };
-    for (const id of ['threshold', ...this.stops.map((s) => s.id)]) {
-      need(`cam_${id}_pos`); need(`cam_${id}_look`); need(`char_anthony_mark_${id}`); need(`ui_anchor_${id}`);
-    }
-    need('env_threshold_left_gate'); need('env_threshold_right_gate');
-    for (const w of ['human', 'tech'] as WorldId[]) { need(`cam_${w}_path_01`); need(`cam_${w}_path_02`); }
-    return missing;
+  missing(part: 'threshold' | WorldId): string[] {
+    const out: string[] = [];
+    const need = (n: string) => { if (!this.byName.has(n)) out.push(n); };
+    const ids = part === 'threshold' ? ['threshold'] : this.stops.filter((s) => s.world === part).map((s) => s.id);
+    for (const id of ids) { need(`cam_${id}_pos`); need(`cam_${id}_look`); need(`char_anthony_mark_${id}`); need(`ui_anchor_${id}`); }
+    if (part === 'threshold') { need('env_threshold_left_gate'); need('env_threshold_right_gate'); }
+    else { need(`cam_${part}_path_01`); need(`cam_${part}_path_02`); }
+    return out;
   }
 
-  build() {
-    for (const w of ['human', 'tech'] as WorldId[]) {
-      const pts: Vector3[] = [];
-      for (let i = 1; this.byName.has(`cam_${w}_path_${String(i).padStart(2, '0')}`); i++) pts.push(this.pos(`cam_${w}_path_${String(i).padStart(2, '0')}`));
-      const curve = new CatmullRomCurve3(pts, false, 'centripetal');
-      curve.arcLengthDivisions = 600;
-      this.paths.set(w, curve);
-      // where each stop sits along the path: the closest sample to its camera empty
-      const samples = 800;
-      const probe = new Vector3();
-      for (const s of this.stops.filter((x) => x.world === w)) {
-        const target = this.pos(`cam_${s.id}_pos`);
-        let best = 0, bestD = Infinity;
-        for (let i = 0; i <= samples; i++) {
-          const d = curve.getPointAt(i / samples, probe).distanceToSquared(target);
-          if (d < bestD) { bestD = d; best = i / samples; }
-        }
-        this.stopT.set(s.id, best);
+  /** Build a world's camera path and find where each stop sits on it. */
+  buildWorld(w: WorldId) {
+    const pts: Vector3[] = [];
+    for (let i = 1; this.byName.has(`cam_${w}_path_${String(i).padStart(2, '0')}`); i++) pts.push(this.pos(`cam_${w}_path_${String(i).padStart(2, '0')}`));
+    const curve = new CatmullRomCurve3(pts, false, 'centripetal');
+    curve.arcLengthDivisions = 600;
+    this.paths.set(w, curve);
+    const samples = 800;
+    const probe = new Vector3();
+    for (const s of this.stops.filter((x) => x.world === w)) {
+      const target = this.pos(`cam_${s.id}_pos`);
+      let best = 0, bestD = Infinity;
+      for (let i = 0; i <= samples; i++) {
+        const d = curve.getPointAt(i / samples, probe).distanceToSquared(target);
+        if (d < bestD) { bestD = d; best = i / samples; }
       }
+      this.stopT.set(s.id, best);
     }
   }
 

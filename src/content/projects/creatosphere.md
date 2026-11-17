@@ -1,6 +1,6 @@
 ---
-title: Creatosphere
-verb: Initiated
-order: 1
-line: "a space for people who make things to meet, play and try ideas out loud. I started it. I'm no longer part of it."
+title: "Creatosphere"
+verb: "Initiated"
+order: 6
+line: "I initiated Creatosphere and contributed to its early development. I am no longer part of the project."
 ---

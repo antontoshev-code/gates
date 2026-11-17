@@ -13,6 +13,7 @@ facts:
   - Nonviolent Communication, games, art
 say: "I hold the room so the group can do the thinking."
 cta: Ask about your group
+enquiry: "Workshop / facilitation"
 action: contact
 ---
 New dates go up on Instagram first. [Open events and sign-ups: coming later]

@@ -29,7 +29,8 @@ export function startTour(data: TourData, r: Renderer) {
   /** At the threshold: which world's route we came out of, and at which end. */
   let back: { world: WorldId; end: 'start' | 'exit' } | null = null;
   let busy = false;
-  let queued: { to: Place; via?: 'exit' } | null = null;
+  type WalkOpts = { via?: 'exit'; focus?: boolean; history?: boolean };
+  let queued: { to: Place; opts: WalkOpts } | null = null;
   let panelOpen = true;
   let sheet: HTMLElement | null = null;
   const visited = new Set<WorldId>();
@@ -45,9 +46,13 @@ export function startTour(data: TourData, r: Renderer) {
   const nextBtn = $<HTMLButtonElement>('#next');
 
   // ---------- moving ----------
-  async function walk(to: Place, via?: 'exit') {
-    if (busy) { queued = { to, via }; return; }
-    if (to === place && !sheet) { openPanel(); return; }
+  async function walk(to: Place, opts: WalkOpts = {}) {
+    const via = opts.via;
+    if (busy) { queued = { to, opts }; return; }
+    if (to === place && !sheet) { openPanel(opts.focus); return; }
+    const from = place;
+    // reduced motion: cut straight to the stop instead of gliding
+    const cut = matchMedia('(prefers-reduced-motion: reduce)').matches;
     busy = true;
     body.dataset.moving = 'true';
     closeSheet(false);
@@ -57,7 +62,7 @@ export function startTour(data: TourData, r: Renderer) {
         if (place !== 'threshold') {
           const s = byId.get(place)!;
           const end = s.order === 1 ? 'start' : 'exit';
-          await r.travel(s.world, s.id, end);
+          await r.travel(s.world, s.id, end, cut);
           back = { world: s.world, end };
           place = 'threshold';
         }
@@ -65,13 +70,13 @@ export function startTour(data: TourData, r: Renderer) {
         const t = byId.get(to)!;
         if (place === 'threshold') {
           const from: RoutePoint = via === 'exit' && back?.world === t.world ? 'exit' : 'start';
-          await r.travel(t.world, from, t.id);
+          await r.travel(t.world, from, t.id, cut);
         } else {
           const s = byId.get(place)!;
-          if (s.world === t.world) await r.travel(t.world, s.id, t.id);
+          if (s.world === t.world) await r.travel(t.world, s.id, t.id, cut);
           else {
-            await r.travel(s.world, s.id, s.order === 1 ? 'start' : 'exit');
-            await r.travel(t.world, 'start', t.id);
+            await r.travel(s.world, s.id, s.order === 1 ? 'start' : 'exit', cut);
+            await r.travel(t.world, 'start', t.id, cut);
           }
         }
         place = to;
@@ -80,23 +85,28 @@ export function startTour(data: TourData, r: Renderer) {
       busy = false;
       delete body.dataset.moving;
     }
-    arrive(true);
-    if (queued) { const q = queued; queued = null; walk(q.to, q.via); }
+    arrive(true, { from, focus: opts.focus, history: opts.history ? 'skip' : 'push' });
+    if (queued) { const q = queued; queued = null; walk(q.to, q.opts); }
   }
 
-  function arrive(spoken: boolean) {
+  const urlFor = (p: Place) => (p === 'threshold' ? location.pathname + location.search : `#${p}`);
+  function arrive(spoken: boolean, o: { from?: Place; focus?: boolean; history?: 'push' | 'replace' | 'skip' } = {}) {
     const s = byId.get(place);
     body.dataset.place = place;
     body.dataset.world = s ? s.world : '';
-    history.replaceState(null, '', place === 'threshold' ? location.pathname + location.search : `#${place}`);
+    // every step is a history entry, so the browser's Back and Forward walk you back and forth
+    const h = o.history ?? 'replace';
+    if (h === 'push' && location.hash.slice(1) !== (place === 'threshold' ? '' : place)) history.pushState({ place }, '', urlFor(place));
+    else if (h === 'replace') history.replaceState({ place }, '', urlFor(place));
     updateNav();
     if (s) {
       visited.add(s.world);
-      openPanel();
+      openPanel(o.focus);
       r.setPose(r.pointPose(s.id));
       const list = inWorld(s.world);
       announce.textContent = `${worldOf(s.world).label}: ${s.title}, ${s.order} of ${list.length}.`;
-      if (spoken) dialogue.say([s.say], [], { autoClose: 6500 });
+      const entering = o.from === 'threshold' && s.order === 1;
+      if (spoken) dialogue.say(entering ? [data.dialogue.entries[s.world], s.say] : [s.say], [], { autoClose: entering ? 8500 : 6500 });
     } else {
       showPanel(null);
       r.setPose('welcome');
@@ -126,7 +136,7 @@ export function startTour(data: TourData, r: Renderer) {
   }
   function prev() {
     if (place === 'threshold') {
-      if (back?.end === 'exit') { const list = inWorld(back.world); walk(list[list.length - 1].id, 'exit'); }
+      if (back?.end === 'exit') { const list = inWorld(back.world); walk(list[list.length - 1].id, { via: 'exit' }); }
       return;
     }
     const s = byId.get(place)!;
@@ -157,14 +167,23 @@ export function startTour(data: TourData, r: Renderer) {
     content.scrollTop = 0;
     $$('#content .stop').forEach((a) => { if (a.id === id) a.scrollTop = 0; });
   }
-  function openPanel() {
+  /** Open the current stop's panel. With focus, keyboard and screen-reader users land on its title. */
+  function openPanel(focus = false) {
     if (place === 'threshold') return;
     panelOpen = true;
     showPanel(place);
+    if (focus) document.querySelector<HTMLElement>(`#${place} .ptitle`)?.focus({ preventScroll: true });
   }
+  /** Close it, and give focus back to the hotspot (or chapter dot) that leads to it. */
   function hidePanel() {
+    const hadFocus = content.contains(document.activeElement);
     panelOpen = false;
     showPanel(null);
+    if (hadFocus) {
+      const hot = hots.find((x) => x.dataset.stop === place && !x.classList.contains('off'));
+      const dot = document.querySelector<HTMLElement>(`#walknav .dots [data-to="${place}"]`);
+      (hot ?? dot)?.focus({ preventScroll: true });
+    }
   }
   function openSheet(id: 'contact' | 'brief', topic?: string) {
     sheet = document.getElementById(id);
@@ -232,10 +251,17 @@ export function startTour(data: TourData, r: Renderer) {
 
   // ---------- wiring ----------
   gates.forEach((g) => g.addEventListener('click', () => enter(g.dataset.gate as WorldId)));
-  hots.forEach((h) => h.addEventListener('click', () => walk(h.dataset.stop!)));
+  hots.forEach((h) => h.addEventListener('click', () => walk(h.dataset.stop!, { focus: true })));
+  gates.forEach((g) => {
+    const w = g.dataset.gate as WorldId;
+    const on = () => { r.prepare(w).catch(() => {}); r.highlightGate?.(w); };
+    const off = () => r.highlightGate?.(null);
+    g.addEventListener('pointerenter', on); g.addEventListener('focus', on);
+    g.addEventListener('pointerleave', off); g.addEventListener('blur', off);
+  });
   prevBtn.addEventListener('click', prev);
   nextBtn.addEventListener('click', next);
-  $$('#walknav .dots [data-to]').forEach((b) => b.addEventListener('click', () => walk(b.dataset.to!)));
+  $$('#walknav .dots [data-to]').forEach((b) => b.addEventListener('click', () => walk(b.dataset.to!, { focus: b.dataset.to !== 'threshold' })));
   $$('#content .panel-close').forEach((b) => b.addEventListener('click', () => (sheet ? closeSheet() : hidePanel())));
 
   const menu = $('#menu');
@@ -248,15 +274,16 @@ export function startTour(data: TourData, r: Renderer) {
   menuBtn.addEventListener('click', () => setMenu(menu.hidden === true));
 
   /** In-page links become walks: #coaching, #contact, #brief, #faq, #threshold. */
-  function route(hash: string, link?: HTMLElement) {
+  function route(hash: string, link?: HTMLElement, fromHistory = false) {
+    const go = (to: Place, focus = false) => walk(to, { focus, history: fromHistory });
     const id = decodeURIComponent(hash.replace(/^#/, ''));
     if (!menu.hidden) setMenu(false);
     if (id === 'contact' || id === 'brief') { openSheet(id, link?.dataset.topic); return true; }
     if (id === 'faq') { dialogue.faq(); return true; }
-    if (id === 'threshold' || id === '' || id === 'content') { walk('threshold'); return true; }
-    if (id === 'people') { enter('human'); return true; }
-    if (id === 'systems') { enter('tech'); return true; }
-    if (byId.has(id)) { walk(id); return true; }
+    if (id === 'threshold' || id === '' || id === 'content') { go('threshold'); return true; }
+    if (id === 'people' || id === 'world-human') { go(inWorld('human')[0].id); return true; }
+    if (id === 'systems' || id === 'world-tech') { go(inWorld('tech')[0].id); return true; }
+    if (byId.has(id)) { go(id, !!link); return true; }
     return false;
   }
   document.addEventListener('click', (e) => {
@@ -264,18 +291,20 @@ export function startTour(data: TourData, r: Renderer) {
     if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey) return;
     if (route(a.getAttribute('href')!, a)) e.preventDefault();
   });
-  addEventListener('hashchange', () => route(location.hash));
+  addEventListener('popstate', () => route(location.hash, undefined, true));
 
   attachInput({
     next, prev,
     left: () => (place === 'threshold' ? enter(data.worlds.find((w) => w.side === 'left')!.id) : prev()),
     right: () => (place === 'threshold' ? enter(data.worlds.find((w) => w.side === 'right')!.id) : next()),
     home: () => walk('threshold'),
+    // Esc closes the topmost thing: menu, form, panel, Anthony's bubble. Then it walks you back to the gates.
     escape: () => {
       if (!menu.hidden) return setMenu(false);
       if (sheet) return closeSheet();
-      if (dialogue.open) return dialogue.close(true);
       if (place !== 'threshold' && panelOpen) return hidePanel();
+      if (dialogue.open) return dialogue.close(true);
+      if (place !== 'threshold') walk('threshold');
     },
     busy: () => busy,
   });

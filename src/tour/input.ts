@@ -2,6 +2,8 @@
  * One gesture = one step. Wheel, swipe, keys. Buttons are wired in the tour itself.
  * Ignores gestures that belong to something scrollable (a panel, the menu) or to a form field.
  */
+import { STEP_LOCK_MS } from './constants';
+
 export interface InputHandlers {
   next(): void;
   prev(): void;
@@ -29,11 +31,10 @@ function canScroll(el: Element | null, dy: number): boolean {
 export function attachInput(h: InputHandlers) {
   let acc = 0;
   let lockUntil = 0;
-  const LOCK_MS = 700;
   const step = (dir: 1 | -1) => {
     const now = performance.now();
     if (now < lockUntil || h.busy()) return;
-    lockUntil = now + LOCK_MS;
+    lockUntil = now + STEP_LOCK_MS;
     acc = 0;
     if (dir > 0) h.next(); else h.prev();
   };

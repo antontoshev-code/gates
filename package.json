@@ -8,7 +8,8 @@
     "build": "node scripts/validate-scene.mjs && astro check && astro build",
     "build:fast": "astro build",
     "preview": "astro preview",
-    "check:scene": "node scripts/validate-scene.mjs"
+    "check:scene": "node scripts/validate-scene.mjs",
+    "optimize:glb": "gltf-transform optimize public/3d-src/$npm_config_name.glb public/3d/$npm_config_name.glb --compress meshopt --texture-compress ktx2"
   },
   "dependencies": {
     "@fontsource/inter-tight": "^5.3.0",
@@ -21,7 +22,9 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
+    "@gltf-transform/cli": "^4.5.1",
     "@types/three": "^0.180.0",
+    "meshoptimizer": "^1.3.0",
     "typescript": "^6.0.3"
   }
 }

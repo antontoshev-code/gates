@@ -12,6 +12,7 @@ facts:
   - "[Format and length: to confirm]"
 say: "One warm thread, one cool one. The work is getting them to meet in the middle."
 cta: Ask about mediation
+enquiry: "Mediation"
 action: contact
 ---
 I'm not a lawyer and this isn't therapy. It's a calm room and someone who doesn't take sides.

@@ -83,6 +83,11 @@ export class PictureRenderer implements Renderer {
     }, MS));
   }
 
+  prepare(world: WorldId) {
+    const first = this.data.stops.find((s) => s.world === world && s.order === 1);
+    if (first) this.picture(first.id);
+    return Promise.resolve();
+  }
   anchor() { return null; }
   head() { return null; }
   setPose(p: Pose) { if (this.guide) this.guide.src = this.data.anthony[p]; }

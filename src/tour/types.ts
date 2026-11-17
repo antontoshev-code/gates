@@ -30,6 +30,7 @@ export interface DialogueData {
   greeting: string[];
   returning: string[];
   lookAround: string;
+  entries: Record<WorldId, string>;
   exits: Record<WorldId, string>;
   choices: { look: string; ask: string };
 }
@@ -55,6 +56,10 @@ export interface Renderer {
   /** Screen position just above Anthony's head, or null. */
   head(): ScreenPoint | null;
   setPose(pose: Pose): void;
+  /** Start loading a world early (on gate hover or focus). Safe to call many times. */
+  prepare(world: WorldId): Promise<void>;
+  /** Optional hover state for a gate in the scene. */
+  highlightGate?(world: WorldId | null): void;
   /** Which way Anthony should point at this stop, from where its anchor sits on screen. */
   pointPose(stopId: string): Pose;
   /** Called after every rendered frame where something moved, so the HTML layer can follow. */

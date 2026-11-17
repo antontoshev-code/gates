@@ -13,6 +13,7 @@ facts:
   - English or Bulgarian
 say: "This is where we sit and think together. I'm still in training, and I'll always say so."
 cta: Write to me about coaching
+enquiry: "Coaching"
 action: contact
 ---
 Full attention, curiosity, no script.

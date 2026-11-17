@@ -5,10 +5,12 @@
  */
 import {
   WebGLRenderer, Scene, PerspectiveCamera, Color, FogExp2, HemisphereLight, Vector3, Vector2, Raycaster,
-  TextureLoader, SRGBColorSpace, type Light, ACESFilmicToneMapping, LoadingManager, Object3D, Texture, MathUtils,
+  TextureLoader, SRGBColorSpace, type Light, type Mesh, type MeshStandardMaterial, ACESFilmicToneMapping, LoadingManager, Object3D, Texture, MathUtils,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
+import { ANTHONY_HEIGHT_M, LIGHT_SCALE, WALK_PITCH, WALK_SPEED, GLIDE_MIN_S, GLIDE_MAX_S, BASIS_PATH } from '../tour/constants';
 import { gsap } from 'gsap';
 import { SceneMap } from './scene-map';
 import { Anthony } from './anthony';
@@ -21,8 +23,6 @@ const TINT: Record<'threshold' | WorldId, [string, number]> = {
   human: ['#ffb27a', 0.16],
   tech: ['#a9b6ff', 0.16],
 };
-const EYE_PITCH = -0.03;
-const LIGHT_SCALE = 683;
 
 type View = { pos: Vector3; yaw: number; pitch: number };
 
@@ -52,6 +52,11 @@ export class ThreeRenderer implements Renderer {
   private pickables: Object3D[] = [];
   private hoverPending = false;
   private sides: Record<'left' | 'right', WorldId>;
+  private loader!: GLTFLoader;
+  private worlds = new Map<WorldId, Promise<void>>();
+  private gateMats: Record<'left' | 'right', MeshStandardMaterial[]> = { left: [], right: [] };
+  private hotGate: 'left' | 'right' | null = null;
+  private visible = true;
 
   constructor(private canvas: HTMLCanvasElement, private data: TourData) {
     const left = data.worlds.find((w) => w.side === 'left')!.id;
@@ -69,46 +74,82 @@ export class ThreeRenderer implements Renderer {
     this.scene.fog = new FogExp2(BG, 0.03);
     this.scene.add(new HemisphereLight('#8f9ad0', '#2a1d14', 0.7));
 
+    // First paint needs only the threshold and Anthony. Each world loads on gate hover/focus, or right before you walk in.
     const manager = new LoadingManager();
     manager.onProgress = (_u, loaded, total) => onProgress(loaded / total);
-    const loader = new GLTFLoader(manager).setMeshoptDecoder(MeshoptDecoder);
+    this.loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder)
+      .setKTX2Loader(new KTX2Loader().setTranscoderPath(BASIS_PATH).detectSupport(gl));
     const tl = new TextureLoader(manager);
     const urls = [...new Set(POSES.map((p) => this.data.anthony[p]))];
-    const [gltfs, texList] = await Promise.all([
-      Promise.all(['threshold', 'human', 'tech'].map((n) => loader.loadAsync(`3d/${n}.glb`))),
+    let glbShare = 0;
+    const [threshold, texList] = await Promise.all([
+      this.loadGlb('threshold', (k) => { glbShare = k; onProgress(Math.min(0.99, k * 0.6 + 0.4 * glbShare)); }),
       Promise.all(urls.map((u) => tl.loadAsync(u))),
     ]);
+    onProgress(1);
     const tex = new Map<string, Texture>(urls.map((u, i) => [u, texList[i]]));
     tex.forEach((t) => { t.colorSpace = SRGBColorSpace; t.anisotropy = 4; });
 
-    const roots = gltfs.map((g) => g.scene);
-    roots.forEach((r) => this.scene.add(r));
-    // Blender exports light power in its own units (W × 683 lm/W), far too bright for three.js. Bring them back to scale.
-    for (const r of roots) r.traverse((o) => { const l = o as Light; if (l.isLight) l.intensity /= LIGHT_SCALE; });
-    this.map = new SceneMap(roots, this.data.stops);
-    const missing = this.map.validate();
-    if (missing.length) throw new Error(`Scene export is missing: ${missing.join(', ')}`);
-    this.map.build();
+    this.map = new SceneMap(this.data.stops);
+    this.addRoot(threshold);
+    const missing = this.map.missing('threshold');
+    if (missing.length) throw new Error(`threshold.glb is missing: ${missing.join(', ')}`);
 
-    const mark = this.map.get('char_anthony_mark_threshold');
-    const height = Number(mark.userData?.height_m) || 1.8;
     const textures = Object.fromEntries(POSES.map((p) => [p, tex.get(this.data.anthony[p])!])) as Record<Pose, Texture>;
-    this.anthony = new Anthony(textures, height);
+    this.anthony = new Anthony(textures, ANTHONY_HEIGHT_M);
     this.scene.add(this.anthony.group);
-
-    for (const r of roots) r.traverse((o) => { if ((o as { isMesh?: boolean }).isMesh && this.map.stopFor(o)) this.pickables.push(o); });
     this.pickables.push(...this.anthony.meshes);
+
+    // gates glow a little on hover
+    for (const side of ['left', 'right'] as const) {
+      this.map.get(`env_threshold_${side}_gate`).traverse((o) => {
+        const m = o as Mesh;
+        if (m.isMesh) { m.material = (m.material as MeshStandardMaterial).clone(); this.gateMats[side].push(m.material as MeshStandardMaterial); }
+      });
+    }
 
     this.applyView(this.view('threshold'));
     this.anthony.group.position.copy(this.markPos('threshold'));
     this.anthony.setTint(...TINT.threshold);
 
+    // if the GPU drops the context (driver reset, too many tabs), fall back to the plain page instead of a frozen scene
+    this.canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); dispatchEvent(new CustomEvent('gates:fail', { detail: 'WebGL context lost' })); });
+
     this.resize();
     addEventListener('resize', () => this.resize());
     document.addEventListener('visibilitychange', () => { this.dirty = true; });
+    new IntersectionObserver(([e]) => { this.visible = e.isIntersecting; this.dirty = true; }).observe(this.canvas);
     this.canvas.addEventListener('pointermove', (e) => this.hover(e));
+    this.canvas.addEventListener('pointerleave', () => this.highlightGate(null));
     this.canvas.addEventListener('click', (e) => this.click(e));
     gl.setAnimationLoop((t) => this.frame(t));
+  }
+
+  // ---------- loading ----------
+  private loadGlb(name: string, progress?: (k: number) => void): Promise<Object3D> {
+    return this.loader.loadAsync(`3d/${name}.glb`, (e) => { if (e.total) progress?.(e.loaded / e.total); }).then((g) => g.scene);
+  }
+  private addRoot(root: Object3D) {
+    this.scene.add(root);
+    root.traverse((o) => { const l = o as Light; if (l.isLight) l.intensity /= LIGHT_SCALE; });
+    this.map.add(root);
+    root.traverse((o) => { if ((o as Mesh).isMesh && this.map.stopFor(o)) this.pickables.push(o); });
+    this.dirty = true;
+  }
+  /** Load a world once. Gate hover and focus call this so the walk in starts without a wait. */
+  prepare(world: WorldId): Promise<void> {
+    let p = this.worlds.get(world);
+    if (!p) {
+      p = this.loadGlb(world).then((root) => {
+        this.addRoot(root);
+        const missing = this.map.missing(world);
+        if (missing.length) throw new Error(`${world}.glb is missing: ${missing.join(', ')}`);
+        this.map.buildWorld(world);
+      });
+      p.catch(() => this.worlds.delete(world));
+      this.worlds.set(world, p);
+    }
+    return p;
   }
 
   // ---------- route geometry ----------
@@ -131,7 +172,8 @@ export class ThreeRenderer implements Renderer {
     this.dirty = true;
   }
 
-  travel(world: WorldId, from: RoutePoint, to: RoutePoint, instant = false): Promise<void> {
+  async travel(world: WorldId, from: RoutePoint, to: RoutePoint, instant = false): Promise<void> {
+    await this.prepare(world);
     const curve = this.map.paths.get(world)!;
     const id = (p: RoutePoint) => (p === 'start' || p === 'exit' ? 'threshold' : p);
     const tA = this.tOf(world, from), tB = this.tOf(world, to);
@@ -145,11 +187,11 @@ export class ThreeRenderer implements Renderer {
       this.anthony.group.position.copy(mB);
       this.anthony.group.visible = true;
       this.anthony.setTint(...tint);
-      return Promise.resolve();
+      return;
     }
 
     const len = curve.getLength() * Math.abs(tB - tA);
-    const duration = MathUtils.clamp(len / 4.5, 1.3, 4.6);
+    const duration = MathUtils.clamp(len / WALK_SPEED, GLIDE_MIN_S, GLIDE_MAX_S);
     const dir = Math.sign(tB - tA);
     const state = { u: 0 };
     const pos = new Vector3(), tan = new Vector3();
@@ -170,7 +212,7 @@ export class ThreeRenderer implements Renderer {
           const s1 = smooth(0, 0.3, u), s2 = smooth(0.7, 1, u);
           this.camera.position.copy(pos);
           this.camera.rotation.set(
-            MathUtils.lerp(MathUtils.lerp(A.pitch, EYE_PITCH, s1), B.pitch, s2),
+            MathUtils.lerp(MathUtils.lerp(A.pitch, WALK_PITCH, s1), B.pitch, s2),
             angleLerp(angleLerp(A.yaw, yawF, s1), B.yaw, s2),
             0,
             'YXZ',
@@ -245,10 +287,29 @@ export class ThreeRenderer implements Renderer {
     requestAnimationFrame(() => {
       this.hoverPending = false;
       const k = this.pick(e);
+      const atGate = document.body.dataset.place === 'threshold';
+      const gate = atGate && k?.startsWith('gate:') ? k.slice(5) as WorldId : null;
+      this.highlightGate(gate);
       const usable = k && (k === 'anthony' || k.startsWith('gate:') ? true : document.body.dataset.world === this.data.stops.find((s) => s.id === k)?.world);
       this.canvas.style.cursor = usable ? 'pointer' : '';
     });
   }
+  /** Hover state for a gate (3D mesh or its HTML button): a soft glow, and its world starts loading. */
+  highlightGate(world: WorldId | null) {
+    const side = world ? (this.sides.left === world ? 'left' : 'right') : null;
+    if (side === this.hotGate) return;
+    this.hotGate = side;
+    for (const s of ['left', 'right'] as const) {
+      for (const m of this.gateMats[s]) {
+        if (!m.emissive) continue;
+        m.emissive.set(s === side ? m.color : '#000000');
+        m.emissiveIntensity = s === side ? 0.35 : 0;
+      }
+    }
+    if (world) this.prepare(world).catch(() => {});
+    this.dirty = true;
+  }
+
   private click(e: MouseEvent) {
     const k = this.pick(e);
     if (!k) return;
@@ -270,7 +331,7 @@ export class ThreeRenderer implements Renderer {
     this.dirty = true;
   }
   private frame(now: number) {
-    if (document.hidden) return;
+    if (document.hidden || !this.visible) return;
     const fading = this.anthony.update(this.camera, now);
     if (!this.dirty && !fading) return;
     this.dirty = false;

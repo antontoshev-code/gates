@@ -12,6 +12,17 @@ Anthony Toshev's personal site. A guided walk: you stand between two gates with 
   - `tier-plain`: no WebGL or reduced motion. A calm readable page with everything on it.
   - Force one with `?tier=3d`, `?tier=25d`, `?tier=plain`, or `?tier=walk` (auto, but ignores reduced motion).
 
+## Loading and fallbacks
+- First paint loads only `threshold.glb` and Anthony. Each world's GLB loads when you hover or focus its gate, or right before you walk in.
+- Every step is a browser history entry: Back and Forward walk you back and forth. Esc closes the topmost thing (menu, form, panel, Anthony's bubble), then walks you back to the gates.
+- Opening a panel from a hotspot or chapter dot moves focus to its title; closing it returns focus to the hotspot.
+- If the 3D fails to load or the GPU drops the WebGL context, the page reloads as the plain version and says why at the top.
+- Without JavaScript the plain page has its own table of contents, so every stop and form is one link away.
+
+## Asset pipeline
+- `npm run optimize:glb --name=human` compresses `public/3d-src/human.glb` into `public/3d/human.glb` (Meshopt geometry, KTX2 textures; KTX2 needs the `ktx` command-line tool from KTX-Software installed).
+- The KTX2 transcoder is in `public/basis/` and is only downloaded if a GLB actually uses KTX2 textures.
+
 ## Words vs positions
 - **All words** live in `src/content/`. **All positions** come from named empties in the Blender exports. A stop file never holds coordinates; Blender never holds copy.
 - `npm run build` runs `scripts/validate-scene.mjs` first. It fails if a stop is missing `cam_<stop>_pos`, `cam_<stop>_look`, `char_anthony_mark_<stop>` or `ui_anchor_<stop>`, if Blender has an empty or `int_` object for a stop with no file, if a camera path skips a number, or if a name breaks the prefix contract (`world_ env_ int_ cam_ char_anthony_mark_ ui_anchor_ light_`). Run it alone with `npm run check:scene`.
@@ -19,10 +30,12 @@ Anthony Toshev's personal site. A guided walk: you stand between two gates with 
 ## Editing content
 | What | Where |
 |---|---|
-| The six stops (title, facts, Anthony's line, button) | `src/content/stops/<stop id>.md`. The file name is the id Blender uses |
+| The threshold and six stops (title, facts, Anthony's line, button) | `src/content/stops/<stop id>.md`. The file name is the id Blender uses |
 | Gate labels and world names | `src/content/worlds.json` |
-| Anthony at the gates | `src/content/dialogue/threshold.md` |
+| Anthony at the gates, world entry and exit lines | `src/content/dialogue/threshold.md` |
 | Questions people ask | `src/content/faq/*.md` |
+| Anthony's height (1.78 m placeholder), walking speed, step lock | `src/tour/constants.ts` |
+| Enquiry types on the contact form | `ENQUIRY` in `src/content.config.ts`; each stop's `enquiry:` preselects one |
 | Anthony's pose photos | `src/content/anthony.json` → files in `public/anthony/`. All five poses use the open-arms photo until the real shots exist |
 | Archive entries | `src/content/projects/*.md` |
 | 3D scenes | `public/3d/threshold.glb`, `human.glb`, `tech.glb` (Blender, Meshopt) |

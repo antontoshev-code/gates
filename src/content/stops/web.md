@@ -13,6 +13,7 @@ facts:
   - You can run it yourself after launch
 say: "Websites, and small automations that quietly do the boring parts."
 cta: Start a brief
+enquiry: "Website / digital project"
 action: brief
 panel: process
 ---

@@ -11,6 +11,7 @@ facts:
   - Early access list open
 say: "My own app. Draw a note while you're here."
 cta: Get early access
+enquiry: "Note to self"
 action: contact
 panel: note
 ---

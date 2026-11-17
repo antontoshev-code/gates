@@ -38,7 +38,7 @@ const tone = d.world === 'human' ? 'warm' : 'cool';
       {projects.map((p) => (<li><b>{p.data.title}</b> <span class="m">({p.data.verb.toLowerCase()})</span> <Ph text={p.data.line} /></li>))}
     </ul>
   )}
-  <a class={`btn ${tone} cta`} href={`#${d.action}`} data-topic={d.action === 'contact' ? d.title : undefined}>{d.cta}</a>
+  <a class={`btn ${tone} cta`} href={`#${d.action}`} data-topic={d.enquiry}>{d.cta}</a>
 </article>
 
 <style>

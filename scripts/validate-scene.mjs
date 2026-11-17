@@ -48,10 +48,11 @@ function readStop(file) {
 const stops = readdirSync(STOP_DIR).filter((f) => f.endsWith('.md')).map(readStop).filter(Boolean);
 
 for (const s of stops) {
+  if (s.world === 'threshold') { if (s.id !== 'threshold') fail(`${s.id}.md: only threshold.md can use world: threshold`); continue; }
   if (!WORLDS[s.world]) fail(`${s.id}.md: world must be one of ${Object.keys(WORLDS).join(', ')}`);
 }
 for (const w of Object.keys(WORLDS)) {
-  const orders = stops.filter((s) => s.world === w).map((s) => s.order).sort((a, b) => a - b);
+  const orders = stops.filter((s) => s.world !== 'threshold').filter((s) => s.world === w).map((s) => s.order).sort((a, b) => a - b);
   orders.forEach((o, i) => { if (o !== i + 1) fail(`world ${w}: stop orders should be 1..${orders.length}, got ${orders.join(', ')}`); });
 }
 
@@ -71,6 +72,7 @@ function checkNames(file, names, known) {
 // threshold
 let names;
 try { names = nodeNames(join(GLB_DIR, 'threshold.glb')); } catch (e) { fail(`threshold.glb: ${e.message}`); names = []; }
+if (!stops.some((s) => s.id === 'threshold')) fail('src/content/stops/threshold.md is missing');
 const thresholdKnown = new Set(['threshold']);
 for (const n of [...required('threshold'), 'env_threshold_left_gate', 'env_threshold_right_gate']) {
   if (!names.includes(n)) fail(`threshold.glb: missing "${n}"`);

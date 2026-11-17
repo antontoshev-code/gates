@@ -7,13 +7,16 @@ import { z } from 'astro/zod';
  * Every schema is strict, so a stray x/y/position in a stop file fails the build.
  */
 
-/** The six places you walk to. The file name is the stop id and must match the Blender empties (cam_<id>_pos, …). */
+/** Enquiry types on the contact form. */
+export const ENQUIRY = ['Coaching', 'Workshop / facilitation', 'Mediation', 'Website / digital project', 'Event / collaboration', 'Note to self', 'Something else'] as const;
+
+/** The threshold plus the six places you walk to. The file name is the stop id and must match the Blender empties (cam_<id>_pos, …). */
 const stops = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/stops' }),
   schema: z
     .object({
-      world: z.enum(['human', 'tech']),
-      order: z.number().int().min(1),
+      world: z.enum(['threshold', 'human', 'tech']),
+      order: z.number().int().min(0),
       place: z.string(),
       picture: z.string(),
       title: z.string(),
@@ -22,6 +25,7 @@ const stops = defineCollection({
       facts: z.array(z.string()),
       say: z.string(),
       cta: z.string(),
+      enquiry: z.enum(ENQUIRY),
       action: z.enum(['contact', 'brief']),
       panel: z.enum(['note', 'process', 'archive']).optional(),
     })
@@ -50,6 +54,7 @@ const dialogue = defineCollection({
       greeting: z.array(z.string()).min(1),
       returning: z.array(z.string()).min(1),
       lookAround: z.string(),
+      entries: z.object({ human: z.string(), tech: z.string() }),
       exits: z.object({ human: z.string(), tech: z.string() }),
       choices: z.object({ look: z.string(), ask: z.string() }),
     })

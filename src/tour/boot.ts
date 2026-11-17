@@ -41,6 +41,7 @@ export async function boot() {
     }
     const giveUp = new Promise<never>((_, rej) => setTimeout(() => rej(new Error('loading took longer than 25 s')), 25000));
     await Promise.race([r.init(progress), giveUp]);
+    addEventListener('gates:fail', (e) => toPlain((e as CustomEvent).detail));
     const tour = startTour(data, r);
     await tour.begin();
     loader.classList.add('done');

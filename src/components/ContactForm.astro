@@ -1,8 +1,8 @@
 ---
 /** "Write to me" form. Posts to Web3Forms when PUBLIC_WEB3FORMS_KEY is set; otherwise says it isn't connected yet. */
-import { getCollection } from 'astro:content';
+import { ENQUIRY } from '../content.config';
 const key = import.meta.env.PUBLIC_WEB3FORMS_KEY ?? '';
-const topics = (await getCollection('stops')).sort((a, b) => (a.data.world === b.data.world ? a.data.order - b.data.order : a.data.world === 'human' ? -1 : 1)).map((s) => s.data.title);
+const topics = ENQUIRY;
 ---
 <div class="contact">
   {!key && <p class="note">Preview: this form isn’t connected yet.</p>}
@@ -10,16 +10,16 @@ const topics = (await getCollection('stops')).sort((a, b) => (a.data.world === b
     <input type="hidden" name="subject" value="New message from antontoshev.com" />
     <input type="checkbox" name="botcheck" class="sr-only" tabindex="-1" autocomplete="off" />
     <div class="field">
-      <label for="c-topic">About</label>
+      <label for="c-topic">What is it about?</label>
       <select id="c-topic" name="topic">
         {topics.map((t) => <option value={t}>{t}</option>)}
-        <option value="Something else">Something else</option>
       </select>
     </div>
     <div class="two">
       <div class="field"><label for="c-name">Your name</label><input type="text" id="c-name" name="name" autocomplete="name" required /></div>
       <div class="field"><label for="c-email">Email</label><input type="email" id="c-email" name="email" autocomplete="email" required /></div>
     </div>
+    <div class="field"><label for="c-when">Dates or event, if any (optional)</label><input type="text" id="c-when" name="when" placeholder="e.g. a workshop in March, or an event you saw" /></div>
     <div class="field"><label for="c-msg">What's going on?</label><textarea id="c-msg" name="message" required placeholder="A few lines is plenty. English or Bulgarian."></textarea></div>
     <button class="btn warm" type="submit">Send</button>
     <p class="status" role="status" hidden></p>
