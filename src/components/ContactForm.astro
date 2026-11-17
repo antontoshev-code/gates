@@ -1,0 +1,62 @@
+---
+/** "Write to me" form. Posts to Web3Forms when PUBLIC_WEB3FORMS_KEY is set; otherwise says it isn't connected yet. */
+import { getCollection } from 'astro:content';
+const key = import.meta.env.PUBLIC_WEB3FORMS_KEY ?? '';
+const topics = (await getCollection('stops')).sort((a, b) => (a.data.world === b.data.world ? a.data.order - b.data.order : a.data.world === 'human' ? -1 : 1)).map((s) => s.data.title);
+---
+<div class="contact">
+  {!key && <p class="note">Preview: this form isn’t connected yet.</p>}
+  <form class="contact-form" data-key={key} novalidate>
+    <input type="hidden" name="subject" value="New message from antontoshev.com" />
+    <input type="checkbox" name="botcheck" class="sr-only" tabindex="-1" autocomplete="off" />
+    <div class="field">
+      <label for="c-topic">About</label>
+      <select id="c-topic" name="topic">
+        {topics.map((t) => <option value={t}>{t}</option>)}
+        <option value="Something else">Something else</option>
+      </select>
+    </div>
+    <div class="two">
+      <div class="field"><label for="c-name">Your name</label><input type="text" id="c-name" name="name" autocomplete="name" required /></div>
+      <div class="field"><label for="c-email">Email</label><input type="email" id="c-email" name="email" autocomplete="email" required /></div>
+    </div>
+    <div class="field"><label for="c-msg">What's going on?</label><textarea id="c-msg" name="message" required placeholder="A few lines is plenty. English or Bulgarian."></textarea></div>
+    <button class="btn warm" type="submit">Send</button>
+    <p class="status" role="status" hidden></p>
+  </form>
+</div>
+<style>
+  .contact { display: grid; gap: 14px; }
+  .note, .status { color: var(--ph-fg) !important; font-size: 14px; }
+  form { display: grid; gap: 16px; min-width: 0; }
+  .field { display: grid; gap: 8px; min-width: 0; }
+  .field > label { font-size: 13px; color: var(--muted); }
+  input[type='text'], input[type='email'], textarea, select { width: 100%; background: var(--field); border: 1px solid var(--glass-line); border-radius: 12px; padding: 12px 14px; color: var(--fg); font: 400 15px var(--font-body); }
+  select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 20px) 50%, calc(100% - 15px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+  textarea { min-height: 110px; resize: vertical; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 560px) { .two { grid-template-columns: 1fr; } }
+</style>
+<script>
+  document.querySelectorAll<HTMLFormElement>('.contact-form').forEach((form) => {
+    const status = form.querySelector<HTMLElement>('.status')!;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      status.hidden = false;
+      const key = form.dataset.key;
+      if (!key) { status.textContent = "Not connected yet. When it's live, this sends your message to Anthony."; return; }
+      if (!form.reportValidity()) { status.hidden = true; return; }
+      status.textContent = 'Sending…';
+      const data = new FormData(form);
+      data.set('access_key', key);
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', { method: 'POST', body: data });
+        const json = await res.json();
+        status.textContent = json.success ? "Sent. I'll write back within a couple of days." : "That didn't go through. Try again in a minute.";
+        if (json.success) form.reset();
+      } catch {
+        status.textContent = "That didn't go through. Check your connection and try again.";
+      }
+    });
+  });
+</script>

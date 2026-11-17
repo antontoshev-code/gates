@@ -1,0 +1,4 @@
+[
+  { "id": "human", "label": "People", "gate": "Begin with people", "hint": "coaching, workshops, mediation", "side": "left" },
+  { "id": "tech", "label": "Systems", "gate": "Begin with systems", "hint": "websites, Note to self, archive", "side": "right" }
+]

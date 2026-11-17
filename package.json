@@ -5,9 +5,10 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build",
+    "build": "node scripts/validate-scene.mjs && astro check && astro build",
     "build:fast": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "check:scene": "node scripts/validate-scene.mjs"
   },
   "dependencies": {
     "@fontsource/inter-tight": "^5.3.0",
@@ -16,10 +17,11 @@
     "@fontsource/syne": "^5.3.0",
     "astro": "^7.4.12",
     "gsap": "^3.15.1",
-    "split-type": "^0.3.4"
+    "three": "^0.180.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
+    "@types/three": "^0.180.0",
     "typescript": "^6.0.3"
   }
 }

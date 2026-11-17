@@ -1,0 +1,7 @@
+[
+  { "id": "welcome", "src": "anthony/anthony.webp" },
+  { "id": "point_left", "src": "anthony/anthony.webp" },
+  { "id": "point_right", "src": "anthony/anthony.webp" },
+  { "id": "listen", "src": "anthony/anthony.webp" },
+  { "id": "walk", "src": "anthony/anthony.webp" }
+]

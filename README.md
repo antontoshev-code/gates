@@ -1,37 +1,33 @@
 # gates
 
-Anthony Toshev's personal site. You stand on a stone path in front of two gates: a warm one woven from branches (**People**: coaching, events, teambuildings) and a glass one full of light (**Technology**: websites, custom builds, AI automations). You walk through one and explore that world.
+Anthony Toshev's personal site. A guided walk: you stand between two gates with Anthony, then walk into **People** (coaching, workshops, mediation) or **Systems** (web creation, Note to self, archive), one stop at a time.
 
-## How it works
-- **The gate**: a WebGL scene of the illustration with a depth map, so it moves in 2.5D as you move the mouse (or tilt the phone). A firefly follows you, embers rise on the people side, sparkles twinkle on the tech side.
-- **Walking through**: click a gate, the glowing button on the path, or press ← / →. The camera flies through the gate into that world.
-- **Exploring**: glowing spots in each world (the lantern, the campfire, the globe, the bonsai…) each open a glass panel with an offer. Move between them with arrow keys, scroll, swipe, or the bar at the bottom. Esc or "Back through the gate" returns.
-- **Fast path**: "Start a brief" (top right) and the menu jump straight to any offer or the brief form, so a business client on a phone never has to play.
-- **Fallbacks**: without JavaScript or WebGL, the page shows the picture with all panels as a plain readable list. Reduced-motion settings turn the animation off.
+## How it works (v1, guided 3D walk)
+- **One gesture, one step.** Scroll, swipe, arrow keys, the ‹ › buttons or the chapter dots move you one stop. At the gates, ← picks People and → picks Systems. Home goes back to the gates, Esc closes whatever is open.
+- **Route:** gates → People (Coaching, Workshops & teambuildings, Mediation & communication) → back to the gates → Systems (Web creation, Note to self, Archive) → back to the gates. Every stop has a URL: `#coaching`, `#web`, `#note_to_self` …
+- **Anthony** is a photo billboard (`src/three/anthony.ts`): a flat cut-out that turns to face you, glides between marks with a small bob, swaps poses with a short crossfade, and has a blob shadow and a light world tint. No rig. Swap that class for a `char_anthony` GLB later.
+- **Three tiers**, picked before anything heavy loads (inline script in `src/layouts/Base.astro`):
+  - `tier-3d`: desktops and tablets with WebGL2. Loads three.js and `public/3d/*.glb`.
+  - `tier-25d`: phones, data saver, low memory. Same stops, words and buttons, told with one picture per stop (`public/pictures`). Never downloads three.js.
+  - `tier-plain`: no WebGL or reduced motion. A calm readable page with everything on it.
+  - Force one with `?tier=3d`, `?tier=25d`, `?tier=plain`, or `?tier=walk` (auto, but ignores reduced motion).
 
-## Stack
-- Astro + TypeScript, static output
-- Plain WebGL shader for the scene (`src/scripts/scene.ts`), canvas overlay for the firefly and particles (`src/scripts/fx.ts`)
-- GSAP for camera moves, SplitType for headline reveals
-- Custom CSS design tokens (`src/styles/tokens.css`)
-- Content in Markdown/JSON collections (`src/content/`)
-- Web3Forms for the brief, Umami for analytics (both off until keys are set)
-- Hosting: Replit static deployment (`.replit`)
+## Words vs positions
+- **All words** live in `src/content/`. **All positions** come from named empties in the Blender exports. A stop file never holds coordinates; Blender never holds copy.
+- `npm run build` runs `scripts/validate-scene.mjs` first. It fails if a stop is missing `cam_<stop>_pos`, `cam_<stop>_look`, `char_anthony_mark_<stop>` or `ui_anchor_<stop>`, if Blender has an empty or `int_` object for a stop with no file, if a camera path skips a number, or if a name breaks the prefix contract (`world_ env_ int_ cam_ char_anthony_mark_ ui_anchor_ light_`). Run it alone with `npm run check:scene`.
 
 ## Editing content
 | What | Where |
 |---|---|
-| The places you can visit in each world | `src/content/stops/*.md`. `x`/`y` place the glowing spot on the picture (0–1), `order` sets the route |
-| Things I've started (shown at the bread table) | `src/content/projects/*.md` |
-| "Note to self" prompts | `src/content/notes.json` |
-| Process steps | `src/components/Process.astro` |
-| The scene pictures | `public/scenes/gate-wide.jpg` (desktop, tablet landscape), `gate-tall.jpg` (phones, tablet portrait) |
+| The six stops (title, facts, Anthony's line, button) | `src/content/stops/<stop id>.md`. The file name is the id Blender uses |
+| Gate labels and world names | `src/content/worlds.json` |
+| Anthony at the gates | `src/content/dialogue/threshold.md` |
+| Questions people ask | `src/content/faq/*.md` |
+| Anthony's pose photos | `src/content/anthony.json` → files in `public/anthony/`. All five poses use the open-arms photo until the real shots exist |
+| Archive entries | `src/content/projects/*.md` |
+| 3D scenes | `public/3d/threshold.glb`, `human.glb`, `tech.glb` (Blender, Meshopt) |
 
-Anything in `[square brackets]` renders as a yellow placeholder until you replace it.
-
-**Improvised copy (replace before launch):** the `more:` line of every stop except t4 and t5, the `line:` of every project, and the last step in `src/components/Process.astro`. These are believable stand-ins, not facts: check formats, prices, group sizes and project descriptions.
-
-The pictures are the first mockups. Final art should be at least 3840px wide and, ideally, one extra close-up picture per world so the zoomed-in views stay sharp.
+Anything in `[square brackets]` renders as a yellow placeholder until you replace it. The Blender scenes are grey-box placeholders and the pictures are the first mockups.
 
 ## Run it
 ```sh
@@ -42,7 +38,7 @@ npm run build      # type-checks, then builds to dist/
 
 ## Settings
 Copy `.env.example` to `.env` (on Replit: Secrets) and fill in:
-- `PUBLIC_WEB3FORMS_KEY`: free access key from web3forms.com. Without it the brief form says it isn't connected yet.
+- `PUBLIC_WEB3FORMS_KEY`: free access key from web3forms.com. Without it the contact and brief forms say it isn't connected yet.
 - `PUBLIC_UMAMI_ID`: website id from Umami Cloud. Without it no analytics script loads.
 
 ## Deploy on Replit
