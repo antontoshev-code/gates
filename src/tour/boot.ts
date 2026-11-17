@@ -15,13 +15,15 @@ function toPlain(reason: unknown) {
   console.warn('[gates] falling back to the plain page:', reason);
   const u = new URL(location.href);
   u.searchParams.set('tier', 'plain');
+  u.searchParams.set('why', 'error');
+  try { sessionStorage.setItem('gates.error', String((reason as Error)?.message || reason).slice(0, 200)); } catch {}
   location.replace(u.toString());
 }
 
 export async function boot() {
   const tier = currentTier();
   setupPlainMenu();
-  if (tier === 'plain') return;
+  if (tier === 'plain') return explainPlain();
 
   const data: TourData = JSON.parse(document.getElementById('tour-data')!.textContent || '{}');
   const loader = document.getElementById('loader')!;
@@ -58,4 +60,21 @@ function setupPlainMenu() {
   btn.addEventListener('click', () => set(menu.hidden === true));
   menu.addEventListener('click', (e) => { if ((e.target as Element).closest('a')) set(false); });
   addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) { set(false); btn.focus(); } });
+}
+
+/** Say why the plain page is showing, so nobody mistakes it for the walk. */
+function explainPlain() {
+  const box = document.getElementById('why');
+  const why = document.documentElement.dataset.why;
+  if (!box || !why || why === 'chosen') return;
+  let err = '';
+  try { err = sessionStorage.getItem('gates.error') || ''; } catch {}
+  const text: Record<string, string> = {
+    'reduced-motion': 'Your device asks for less motion, so this is the calm page version. The 3D walk is one click away.',
+    'no-webgl': "This browser can't show 3D here (WebGL 2 is off or blocked), so this is the page version.",
+    error: `The 3D walk couldn't start here, so this is the page version.${err ? ` (${err})` : ''}`,
+  };
+  box.querySelector('span')!.textContent = text[why] ?? '';
+  (box.querySelector('a') as HTMLElement).hidden = why === 'no-webgl';
+  box.hidden = false;
 }

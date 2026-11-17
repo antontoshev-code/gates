@@ -27,19 +27,22 @@ const umamiSrc = import.meta.env.PUBLIC_UMAMI_SRC || 'https://cloud.umami.is/scr
     <!-- Pick the tier before anything heavy downloads. ?tier=3d|25d|plain overrides. -->
     <script is:inline>
       (function () {
-        var h = document.documentElement, t;
+        var h = document.documentElement, t, why = 'chosen';
         try { t = new URLSearchParams(location.search).get('tier'); } catch (e) {}
         var walk = t === 'walk';
         if (t !== '3d' && t !== '25d' && t !== 'plain') {
           var gl = null;
           try { var c = document.createElement('canvas'); gl = c.getContext('webgl2'); if (gl) { var x = gl.getExtension('WEBGL_lose_context'); x && x.loseContext(); } } catch (e) {}
           var nav = navigator, conn = nav.connection || {};
-          if ((!walk && matchMedia('(prefers-reduced-motion: reduce)').matches) || !gl) t = 'plain';
+          if (!gl) { t = 'plain'; why = 'no-webgl'; }
+          else if (!walk && matchMedia('(prefers-reduced-motion: reduce)').matches) { t = 'plain'; why = 'reduced-motion'; }
           else if ((matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 768) || conn.saveData || (nav.deviceMemory && nav.deviceMemory < 4)) t = '25d';
           else t = '3d';
         }
         h.classList.remove('no-js', 'tier-plain');
         h.classList.add('js', 'tier-' + t);
+        try { why = new URLSearchParams(location.search).get('why') || why; } catch (e) {}
+        h.setAttribute('data-why', why);
       })();
     </script>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
