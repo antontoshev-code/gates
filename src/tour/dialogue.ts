@@ -74,6 +74,10 @@ export class Dialogue {
     this.el.hidden = true;
     this.ask.hidden = false;
     this.open = false;
-    if (byUser || hadFocus) this.ask.focus({ preventScroll: true });
+    if (byUser || hadFocus) {
+      this.ask.focus({ preventScroll: true });
+      // the Ask button can be off screen on some layouts; then give focus back to the page's main controls
+      if (document.activeElement !== this.ask) document.getElementById('next')?.focus({ preventScroll: true });
+    }
   }
 }

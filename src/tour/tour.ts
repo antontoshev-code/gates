@@ -51,6 +51,8 @@ export function startTour(data: TourData, r: Renderer) {
     if (busy) { queued = { to, opts }; return; }
     if (to === place && !sheet) { openPanel(opts.focus); return; }
     const from = place;
+    // a keyboard or screen-reader user had focus somewhere; don't let it fall to <body> when that control hides
+    const hadFocus = document.activeElement instanceof HTMLElement && document.activeElement !== body;
     // reduced motion: cut straight to the stop instead of gliding
     const cut = matchMedia('(prefers-reduced-motion: reduce)').matches;
     busy = true;
@@ -86,7 +88,24 @@ export function startTour(data: TourData, r: Renderer) {
       delete body.dataset.moving;
     }
     arrive(true, { from, focus: opts.focus, history: opts.history ? 'skip' : 'push' });
+    if (hadFocus && !queued) keepFocus();
     if (queued) { const q = queued; queued = null; walk(q.to, q.opts); }
+  }
+
+  /** True when focus sits on nothing, or on a control that is now hidden. */
+  function focusLost() {
+    const a = document.activeElement as HTMLElement | null;
+    return !a || a === body || !a.isConnected || a.closest('[hidden]') !== null || a.getClientRects().length === 0;
+  }
+  /** After a walk: land on the stop's panel title, or back at the threshold on the gate you came out of. */
+  function keepFocus() {
+    if (!focusLost()) return;
+    if (place !== 'threshold') {
+      document.querySelector<HTMLElement>(`#${place} .ptitle`)?.focus({ preventScroll: true });
+      return;
+    }
+    const gate = gates.find((g) => g.dataset.gate === back?.world) ?? gates[0];
+    gate?.focus({ preventScroll: true });
   }
 
   const urlFor = (p: Place) => (p === 'threshold' ? location.pathname + location.search : `#${p}`);
