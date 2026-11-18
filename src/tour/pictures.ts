@@ -33,6 +33,13 @@ export class PictureRenderer implements Renderer {
       this.guide = Object.assign(document.createElement('img'), { className: 'guide', alt: '', src: this.data.anthony.welcome });
       this.guide.addEventListener('click', () => this.onPick('anthony'));
       el.append(this.guide);
+      // the painted gates can be tapped too; the labelled gate buttons stay the accessible way in
+      for (const w of this.data.worlds) {
+        const hit = Object.assign(document.createElement('button'), { type: 'button', className: `gate-hit ${w.side === 'left' ? 'l' : 'r'}`, tabIndex: -1 });
+        hit.setAttribute('aria-hidden', 'true');
+        hit.addEventListener('click', () => this.onPick(`gate:${w.id}`));
+        el.append(hit);
+      }
     }
     this.layer.append(el);
     this.pics.set(id, el);

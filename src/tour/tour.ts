@@ -212,12 +212,14 @@ export function startTour(data: TourData, r: Renderer) {
       if (sel && [...sel.options].some((o) => o.value === topic)) sel.value = topic;
     }
     showPanel(id);
+    body.dataset.sheet = id;
     history.replaceState(null, '', `#${id}`);
     sheet.querySelector<HTMLElement>('h2, h3')?.focus({ preventScroll: true });
   }
   function closeSheet(restore = true) {
     if (!sheet) return;
     sheet = null;
+    delete body.dataset.sheet;
     if (restore) {
       if (place !== 'threshold' && panelOpen) showPanel(place); else showPanel(null);
       history.replaceState(null, '', place === 'threshold' ? location.pathname + location.search : `#${place}`);
@@ -328,6 +330,19 @@ export function startTour(data: TourData, r: Renderer) {
     },
     busy: () => busy,
   });
+
+  // The on-screen keyboard: some in-app browsers (Messenger, Instagram) keep the page full height under it.
+  // Track the part of the screen that is really visible so an open form can fit into it.
+  const vv = window.visualViewport;
+  if (vv) {
+    const fit = () => {
+      document.documentElement.style.setProperty('--vvh', `${Math.round(vv.height)}px`);
+      document.documentElement.style.setProperty('--vvtop', `${Math.round(vv.offsetTop)}px`);
+    };
+    vv.addEventListener('resize', fit);
+    vv.addEventListener('scroll', fit);
+    fit();
+  }
 
   // ---------- start ----------
   async function begin() {

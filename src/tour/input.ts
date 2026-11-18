@@ -49,19 +49,24 @@ export function attachInput(h: InputHandlers) {
     if (Math.abs(acc) > 40) step(acc > 0 ? 1 : -1);
   }, { passive: false });
 
-  let sx = 0, sy = 0, tracking = false;
+  // One swipe = one step. Sideways swipes count anywhere, including over a panel or Anthony's bubble,
+  // because those only scroll up and down. Up/down swipes count only outside them. Never while a form is open.
+  let sx = 0, sy = 0, tracking = false, inScroll = false;
   addEventListener('touchstart', (e) => {
     const t = e.target as Element;
-    tracking = !t.closest?.(SCROLLABLE) && e.touches.length === 1;
+    tracking = e.touches.length === 1 && !document.body.dataset.sheet && !t.closest?.(TYPING) && !t.closest?.('.menu:not([hidden])');
+    inScroll = !!t.closest?.(SCROLLABLE);
     if (tracking) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }
   }, { passive: true });
+  addEventListener('touchcancel', () => { tracking = false; }, { passive: true });
   addEventListener('touchend', (e) => {
     if (!tracking) return;
     tracking = false;
     const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
     if (Math.max(Math.abs(dx), Math.abs(dy)) < 50) return;
     // swipe up or left = forward, like turning a page
-    if (Math.abs(dy) > Math.abs(dx)) step(dy < 0 ? 1 : -1); else step(dx < 0 ? 1 : -1);
+    if (Math.abs(dy) > Math.abs(dx)) { if (!inScroll) step(dy < 0 ? 1 : -1); }
+    else step(dx < 0 ? 1 : -1);
   }, { passive: true });
 
   addEventListener('keydown', (e) => {
