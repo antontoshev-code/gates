@@ -1,6 +1,6 @@
 ---
-title: Playfight Club
-verb: Developing
-order: 2
-line: "consensual, playful wrestling as a way to meet people without small talk."
+title: "Playfight Club"
+verb: "Developing"
+order: 7
+line: "Consensual, playful wrestling as a way to meet people without small talk. [Status and dates: to add]"
 ---

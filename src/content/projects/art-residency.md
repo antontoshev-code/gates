@@ -1,6 +1,6 @@
 ---
-title: Art residency
-verb: Supported
-order: 3
-line: "an artist residency where I helped on the ground."
+title: "Art-residency support"
+verb: "Supported"
+order: 4
+line: "Helping an artist residency on the ground. [Residency name, year and what I did: to add]"
 ---
