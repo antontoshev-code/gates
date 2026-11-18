@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+const notes = await getCollection('notes');
+const first = notes[0];
+---
+<div class="slip" aria-live="polite" data-notes={JSON.stringify(notes.map((n) => ({ id: n.id, text: n.data.text })))}>
+  <span class="meta">Note to self, number <span class="slip-n">{first?.id}</span></span>
+  <blockquote class="slip-q">{first?.data.text}</blockquote>
+  <div class="foot"><span class="meta">Write it down. Or don’t.</span><button class="slip-btn" type="button">Draw another ↻</button></div>
+</div>
+<style>
+  .slip { position: relative; background: var(--paper); color: var(--ink); border-radius: 6px; padding: 24px; display: grid; gap: 12px; transform: rotate(-1.5deg); box-shadow: 0 20px 50px var(--shadow); }
+  .slip .meta { color: var(--ink-muted); font-size: 13px; }
+  blockquote { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 24px; line-height: 1.1; letter-spacing: -0.02em; }
+  .foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .slip-btn:active { transform: scale(0.96); }
+  .slip-btn { transition: transform 0.15s; font: 600 13px var(--font-body); background: var(--ink); color: var(--paper); border: 0; border-radius: 999px; padding: 8px 12px; cursor: pointer; }
+</style>
+<script>
+  document.querySelectorAll<HTMLElement>('.slip').forEach((slip) => {
+    const notes: { id: string; text: string }[] = JSON.parse(slip.dataset.notes || '[]');
+    const q = slip.querySelector('.slip-q')!, n = slip.querySelector('.slip-n')!;
+    let i = 0;
+    slip.querySelector('.slip-btn')?.addEventListener('click', () => {
+      if (notes.length < 2) return;
+      let j: number;
+      do { j = Math.floor(Math.random() * notes.length); } while (j === i);
+      i = j;
+      q.textContent = notes[i].text;
+      n.textContent = notes[i].id;
+    });
+  });
+</script>

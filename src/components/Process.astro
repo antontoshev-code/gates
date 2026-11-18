@@ -1,0 +1,19 @@
+---
+import Ph from './Ph.astro';
+const steps = [
+  { k: '1. Listen', t: 'We talk', d: "What you do, who it's for, and what the site has to get people to do." },
+  { k: '2. Plan', t: 'I plan', d: 'Pages, words and structure first. Design comes after we agree on the message.' },
+  { k: '3. Build', t: 'I build', d: 'You see it while it grows and can change your mind.' },
+  { k: '4. Launch', t: 'We launch', d: 'You learn to update it yourself, and I stay around for questions after launch.' },
+];
+---
+<ol class="steps">
+  {steps.map((s) => (<li><b>{s.k}</b><span class="t">{s.t}</span><span class="d"><Ph text={s.d} /></span></li>))}
+</ol>
+<style>
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-top: 1px solid var(--glass-line); }
+  li { display: grid; grid-template-columns: 92px 1fr; gap: 2px 14px; padding: 12px 0; border-bottom: 1px solid var(--glass-line); }
+  b { grid-row: span 2; font-weight: 500; color: var(--cool-soft); font-size: 13px; padding-top: 4px; font-variant-numeric: tabular-nums; }
+  .t { font-family: var(--font-display); font-weight: 700; font-size: 19px; }
+  .d { color: var(--muted); font-size: 14px; }
+</style>

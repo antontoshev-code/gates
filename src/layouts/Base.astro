@@ -1,0 +1,56 @@
+---
+import '@fontsource/syne/500.css';
+import '@fontsource/syne/700.css';
+import '@fontsource/syne/800.css';
+import '@fontsource/inter-tight/400.css';
+import '@fontsource/inter-tight/500.css';
+import '@fontsource/inter-tight/600.css';
+import '@fontsource/silkscreen/400.css';
+import '../styles/global.css';
+
+interface Props { title?: string; description?: string }
+const {
+  title = 'Anthony Toshev · People & Technology',
+  description = 'Coaching, workshops and teambuildings on one side. Websites and AI automations on the other. Sofia, Bulgaria.',
+} = Astro.props;
+const umamiId = import.meta.env.PUBLIC_UMAMI_ID;
+const umamiSrc = import.meta.env.PUBLIC_UMAMI_SRC || 'https://cloud.umami.is/script.js';
+---
+<!doctype html>
+<html lang="en" class="no-js tier-plain">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#07080c" />
+    <!-- Pick the tier before anything heavy downloads. ?tier=3d|25d|plain overrides. -->
+    <script is:inline>
+      (function () {
+        var h = document.documentElement, t, why = 'chosen';
+        try { t = new URLSearchParams(location.search).get('tier'); } catch (e) {}
+        var walk = t === 'walk';
+        if (t !== '3d' && t !== '25d' && t !== 'plain') {
+          var gl = null;
+          try { var c = document.createElement('canvas'); gl = c.getContext('webgl2'); if (gl) { var x = gl.getExtension('WEBGL_lose_context'); x && x.loseContext(); } } catch (e) {}
+          var nav = navigator, conn = nav.connection || {};
+          if (!gl) { t = 'plain'; why = 'no-webgl'; }
+          else if (!walk && matchMedia('(prefers-reduced-motion: reduce)').matches) { t = 'plain'; why = 'reduced-motion'; }
+          else if ((matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 768) || conn.saveData || (nav.deviceMemory && nav.deviceMemory < 4)) t = '25d';
+          else t = '3d';
+        }
+        h.classList.remove('no-js', 'tier-plain');
+        h.classList.add('js', 'tier-' + t);
+        try { why = new URLSearchParams(location.search).get('why') || why; } catch (e) {}
+        h.setAttribute('data-why', why);
+      })();
+    </script>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {umamiId && <script defer src={umamiSrc} data-website-id={umamiId}></script>}
+  </head>
+  <body data-place="threshold">
+    <slot />
+  </body>
+</html>
