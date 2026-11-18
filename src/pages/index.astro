@@ -392,7 +392,7 @@ const chevron = (d: string) => `<svg width="18" height="18" viewBox="0 0 24 24" 
     .tier-3d #content, .tier-25d #content, .tier-3d body[data-panel-side='left'] #content { left: auto; right: max(12px, env(safe-area-inset-right, 0px)); top: max(60px, calc(env(safe-area-inset-top, 0px) + 52px)); bottom: calc(max(8px, env(safe-area-inset-bottom, 0px)) + 66px); translate: 0 0; width: min(420px, 48vw); max-height: none; padding: 16px 18px; --px: 18px; --py: 16px; border-radius: 18px; }
     .tier-3d body[data-panel='closed'] #content, .tier-25d body[data-panel='closed'] #content, .tier-3d body[data-moving] #content, .tier-25d body[data-moving] #content { translate: 16px 0; }
     .tier-3d .panel-close, .tier-25d .panel-close { top: 6px; right: 6px; }
-    .ptitle { font-size: 24px !important; padding-right: 40px; }
+    .ptitle { font-size: 24px !important; margin-right: 44px; }
     #bubble, #bubble.pinned, body:not([data-panel='closed']):not([data-place='threshold']) #bubble, body:not([data-panel='closed']):not([data-place='threshold']) #bubble.pinned, body[data-place='threshold'] #bubble:not(.pinned),
     body[data-panel-side='left']:not([data-panel='closed']):not([data-place='threshold']) #bubble:not(.pinned) {
       left: max(12px, env(safe-area-inset-left, 0px)); right: auto; translate: 0 0; width: min(340px, calc(52vw - 36px)); top: max(60px, calc(env(safe-area-inset-top, 0px) + 52px)); bottom: auto; max-height: calc(100svh - 140px); border-radius: 18px; }

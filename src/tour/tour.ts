@@ -338,6 +338,8 @@ export function startTour(data: TourData, r: Renderer) {
       place = s.id;
       arrive(false);
       dialogue.close(false); // nothing was said yet, so show the "Ask Anthony" button
+      // a direct link lands on the room itself: put focus on its title so keyboard and screen reader users start there
+      if (panelOpen) $<HTMLElement>(`#${s.id} .ptitle`)?.focus({ preventScroll: true });
     } else {
       arrive(false);
       if (id === 'contact' || id === 'brief') openSheet(id);
