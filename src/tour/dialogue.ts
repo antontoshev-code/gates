@@ -68,13 +68,15 @@ export class Dialogue {
     (this.choices.querySelector('button') as HTMLButtonElement | null)?.focus();
   }
 
-  close(byUser: boolean) {
+  /** `byUser` is kept for callers' clarity; focus only moves when it was inside the bubble. */
+  close(_byUser: boolean) {
     clearTimeout(this.timer);
     const hadFocus = this.el.contains(document.activeElement);
     this.el.hidden = true;
     this.ask.hidden = false;
     this.open = false;
-    if (byUser || hadFocus) {
+    // only move focus if it was inside the bubble; Esc pressed elsewhere leaves focus where it is
+    if (hadFocus) {
       this.ask.focus({ preventScroll: true });
       // the Ask button can be off screen on some layouts; then give focus back to the page's main controls
       if (document.activeElement !== this.ask) document.getElementById('next')?.focus({ preventScroll: true });

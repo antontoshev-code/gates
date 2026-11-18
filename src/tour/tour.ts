@@ -256,7 +256,8 @@ export function startTour(data: TourData, r: Renderer) {
     const head = r.head();
     // keep the panel on the side where Anthony isn't
     if (head && !body.dataset.moving) body.dataset.panelSide = head.x > innerWidth / 2 ? 'left' : 'right';
-    bubble.classList.toggle('pinned', !!head);
+    // pin the bubble over Anthony's head only when there's room above it; otherwise it sits in its usual place
+    bubble.classList.toggle('pinned', !!head && head.y > 300);
     if (head) {
       bubble.style.setProperty('--hx', `${head.x.toFixed(1)}px`);
       bubble.style.setProperty('--hy', `${head.y.toFixed(1)}px`);
@@ -336,6 +337,7 @@ export function startTour(data: TourData, r: Renderer) {
       await r.travel(s.world, 'start', s.id, true);
       place = s.id;
       arrive(false);
+      dialogue.close(false); // nothing was said yet, so show the "Ask Anthony" button
     } else {
       arrive(false);
       if (id === 'contact' || id === 'brief') openSheet(id);
