@@ -338,9 +338,11 @@ const chevron = (d: string) => `<svg width="18" height="18" viewBox="0 0 24 24" 
   .tier-3d .shot, .tier-25d .shot { display: none; }
   .tier-3d .panel-close, .tier-25d .panel-close { display: grid; top: -12px; right: -12px; }
   .tier-3d .stop .meta, .tier-25d .stop .meta { padding-right: 36px; }
-  /* the CTA stays in reach on its own solid band: body text scrolls under the band, never shows around or through the button */
-  .tier-3d .stop .cta-bar, .tier-25d .stop .cta-bar { position: sticky; bottom: calc(-1 * var(--py, 28px)); z-index: 1; margin: 0 calc(-1 * var(--px, 28px)) calc(-1 * var(--py, 28px)); padding: 18px var(--px, 28px) var(--py, 28px);
-    background: linear-gradient(to bottom, rgba(16, 16, 26, 0), rgb(16, 16, 26) 14px); }
+  /* the room text scrolls in its own area that ends above the call to action, so nothing ever sits behind the button */
+  .tier-3d #content, .tier-25d #content { display: flex; flex-direction: column; }
+  .tier-3d #content .stop.on, .tier-25d #content .stop.on { display: flex !important; flex-direction: column; gap: 14px; flex: 0 1 auto; min-height: 0; }
+  .tier-3d .stop .body, .tier-25d .stop .body { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 6px 18px; margin: -6px -6px 0; -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent); scrollbar-width: thin; scrollbar-color: var(--light-20) transparent; }
+  .tier-3d .stop .cta-bar, .tier-25d .stop .cta-bar { flex: none; position: relative; margin-top: -8px; padding-top: 10px; border-top: 1px solid var(--glass-line); }
   .tier-3d .stop .cta, .tier-25d .stop .cta { box-shadow: 0 10px 28px var(--shadow); }
   .tier-3d body[data-panel-side='left'] #content { right: auto; left: max(24px, env(safe-area-inset-left, 0px)); }
 

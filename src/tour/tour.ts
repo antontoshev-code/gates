@@ -184,7 +184,7 @@ export function startTour(data: TourData, r: Renderer) {
     $$('#content > section > article.stop, #content > .sheet').forEach((a) => a.classList.toggle('on', a.id === id));
     body.dataset.panel = id ? 'open' : 'closed';
     content.scrollTop = 0;
-    $$('#content .stop').forEach((a) => { if (a.id === id) a.scrollTop = 0; });
+    $$('#content .stop').forEach((a) => { if (a.id === id) { a.scrollTop = 0; const b = a.querySelector('.body'); if (b) b.scrollTop = 0; } });
   }
   /** Open the current stop's panel. With focus, keyboard and screen-reader users land on its title. */
   function openPanel(focus = false) {

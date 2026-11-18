@@ -14,7 +14,7 @@ export interface InputHandlers {
   busy(): boolean;
 }
 
-const SCROLLABLE = '#content, .menu, #bubble';
+const SCROLLABLE = '#content, .stop .body, .menu, #bubble';
 const TYPING = 'input, textarea, select, [contenteditable="true"]';
 
 function canScroll(el: Element | null, dy: number): boolean {
