@@ -12,6 +12,8 @@ export class Dialogue {
   choices: HTMLElement;
   ask: HTMLButtonElement;
   open = false;
+  /** What the "Ask Anthony" button opens. Defaults to the questions. */
+  onAsk: (() => void) | null = null;
   private timer = 0;
 
   constructor(private data: TourData, private pose: (p: Pose) => void) {
@@ -20,7 +22,7 @@ export class Dialogue {
     this.choices = this.el.querySelector('.choices')!;
     this.ask = document.getElementById('ask') as HTMLButtonElement;
     this.el.querySelector('.close')!.addEventListener('click', () => this.close(true));
-    this.ask.addEventListener('click', () => this.faq());
+    this.ask.addEventListener('click', () => (this.onAsk ? this.onAsk() : this.faq()));
     this.el.addEventListener('pointerenter', () => clearTimeout(this.timer));
     this.el.addEventListener('focusin', () => clearTimeout(this.timer));
   }

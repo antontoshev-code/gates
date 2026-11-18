@@ -167,6 +167,10 @@ export function startTour(data: TourData, r: Renderer) {
     dialogue.say([data.dialogue.lookAround], [], { autoClose: 6000 });
   }
 
+  // Phones and small screens: the welcome and its choices would cover half the scene, so they wait until asked.
+  const compact = () => matchMedia('(max-width: 820px), (max-aspect-ratio: 9/10), (max-height: 520px)').matches;
+  dialogue.onAsk = () => (place === 'threshold' ? greet() : dialogue.faq());
+
   function greet() {
     const seen = store('gates.seen');
     store('gates.seen', '1');
@@ -266,7 +270,7 @@ export function startTour(data: TourData, r: Renderer) {
     }
   };
   r.onPick = (key) => {
-    if (key === 'anthony') return dialogue.open ? dialogue.close(true) : dialogue.faq();
+    if (key === 'anthony') return dialogue.open ? dialogue.close(true) : dialogue.onAsk!();
     if (key.startsWith('gate:')) return enter(key.slice(5) as WorldId);
     if (byId.has(key)) walk(key);
   };
@@ -358,7 +362,7 @@ export function startTour(data: TourData, r: Renderer) {
     } else {
       arrive(false);
       if (id === 'contact' || id === 'brief') openSheet(id);
-      greet();
+      if (compact()) dialogue.close(false); else greet();
     }
   }
   return { begin };
